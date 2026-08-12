@@ -1,1385 +1,2404 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rime Wardens</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clan Roster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#050a10;
+    --bg-1:#0a131c;
+    --panel:#0c1720;
+    --stripe:#0f1b24;
+    --outline:#26404d;
+    --ice:#6fc3e8;
+    --ice-bright:#cdf2ff;
+    --text:#e7f4fb;
+    --text-dim:#7f97a3;
+  }
 
-    <style>
-        .visibility-options {
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            margin: 10px 0;
-        }
-        #user-section {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            min-height: 58px;
-        }
+  *{margin:0;padding:0;box-sizing:border-box;}
 
-        #profile-area {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+  html{
+    scroll-behavior:smooth;
+     scrollbar-gutter: stable;
+  }
 
-        #profile-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+  html,body{
+    min-height:100%;
+    background:var(--bg-0);
+    font-family:'Montserrat',sans-serif;
+    color:var(--text);
+  }
 
-        .profile-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            object-fit: contain;
-        }
+  body{
+    position:relative;
+    overflow-x:hidden;
+    background:
+      radial-gradient(60% 45% at 18% 8%, rgba(111,195,232,0.10), transparent 60%),
+      radial-gradient(50% 40% at 85% 92%, rgba(111,195,232,0.08), transparent 60%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  }
 
-        #session-status {
-            color: #666;
-        }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:0;
+    background:repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,0.015),
+      rgba(255,255,255,0.015) 1px,
+      transparent 1px,
+      transparent 26px
+    );
+  }
 
-        .invite-compose-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+  body.no-scroll{overflow:hidden;}
 
-        #invite-value {
-            flex: 1;
-            min-width: 0;
-        }
+  .snow{
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .flake{
+    position:absolute;
+    top:-5%;
+    border-radius:50%;
+    background:rgba(215,242,255,0.55);
+    filter:blur(0.3px);
+    animation-name:fall;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+  }
+  @keyframes fall{
+    0%{ transform:translateY(0) translateX(0); opacity:0; }
+    8%{ opacity:1; }
+    92%{ opacity:1; }
+    100%{ transform:translateY(105vh) translateX(20px); opacity:0; }
+  }
 
-        .visibility-options {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin: 0;
-            flex-shrink: 0;
-        }
+  /* ---------- site header / nav / account ---------- */
 
-        #invite-form > .invite-compose-row > button[type="submit"] {
-            flex-shrink: 0;
-        }
+  .site-header{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:rgba(5,10,16,0.82);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--outline);
+  }
 
-        #invite-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 520px;
-            overflow-y: auto;
-            padding: 4px 0;
-        }
+  .site-header-inner{
+    position:relative;
+    max-width:1080px;
+    margin:0 auto;
+    padding:0.85em 1.5em;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:0.7em 1.4em;
+  }
 
-        .invite-item {
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-        }
+  .clan-brand{
+    display:flex;
+    flex-direction:column;
+    gap:0.2em;
+    order:1;
+  }
+  .clan-name-row{
+    display:flex;
+    align-items:center;
+    gap:0.5em;
+  }
+  .clan-logo-wrap{
+    width:22px;
+    height:22px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .clan-logo-img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    filter:drop-shadow(0 0 6px rgba(111,195,232,0.55));
+  }
+  .clan-icon{
+    width:100%;
+    height:100%;
+    flex-shrink:0;
+    filter:drop-shadow(0 0 6px rgba(111,195,232,0.55));
+  }
+  .clan-name{
+    font-size:1.25em;
+    font-weight:800;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    background:linear-gradient(135deg, var(--ice-bright), var(--ice));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 0 18px rgba(111,195,232,0.3);
+    white-space:nowrap;
+  }
+  .clan-tag{
+    font-size:0.6em;
+    font-weight:700;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
 
-        .invite-item-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 5px;
-        }
+  .site-nav{
+    display:flex;
+    align-items:center;
+    gap:1.5em;
+    flex-wrap:wrap;
+    order:3;
+    flex:1 1 100%;
+    justify-content:center;
+  }
+  @media (min-width:760px){
+    .site-nav{ order:2; flex:0 1 auto; justify-content:flex-start; }
+  }
 
-        .invite-sender-avatar {
-            width: 28px;
-            height: 28px;
-            object-fit: contain;
-            border-radius: 50%;
-        }
+  .nav-link{
+    background:none;
+    border:none;
+    padding:0.3em 0;
+    font-family:'Montserrat',sans-serif;
+    font-size:0.76em;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    text-decoration:none;
+    cursor:pointer;
+    position:relative;
+    transition:color .2s ease;
+  }
+  .nav-link::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:100%;
+    bottom:-2px;
+    height:2px;
+    background:var(--ice-bright);
+    transition:right .22s ease;
+  }
+  .nav-link:hover{ color:var(--ice-bright); }
+  .nav-link:hover::after{ right:0; }
 
-        .invite-item-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 7px;
-        }
+  .account-wrap{
+    position:relative;
+    order:2;
+    flex-shrink:0;
+  }
+  @media (min-width:760px){
+    .account-wrap{ order:3; }
+  }
 
-        @media (max-width: 800px) {
-            .invite-compose-row {
-                flex-wrap: wrap;
-            }
+  .account-avatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    overflow:hidden;
+    padding:0;
+    background:var(--panel);
+    border:2px solid var(--outline);
+    cursor:pointer;
+    display:block;
+    transition:border-color .2s ease;
+  }
+  .account-avatar:hover,
+  .account-wrap.open .account-avatar{
+    border-color:var(--ice);
+  }
+  .account-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
 
-            #invite-value {
-                flex-basis: 100%;
-            }
-        }
+  .account-menu{
+    position:absolute;
+    top:calc(100% + 10px);
+    right:0;
+    min-width:190px;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    box-shadow:0 12px 28px rgba(0,0,0,0.45);
+    padding:0.9em 1em 1em;
+    z-index:60;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(6px);
+    transition:opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
+  }
+  .account-wrap.open .account-menu{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+    transition:opacity .18s ease, transform .18s ease, visibility 0s linear 0s;
+  }
+  .account-menu-label{
+    font-size:0.58em;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  .account-menu-user{
+    margin-top:0.35em;
+    font-size:0.92em;
+    font-weight:800;
+    color:var(--ice-bright);
+    white-space:nowrap;
+  }
+  .account-menu-user .tag{
+    display:block;
+    margin-top:0.25em;
+    font-size:0.6em;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  .account-logout{
+    margin-top:0.85em;
+    width:100%;
+    padding:0.55em 0;
+    background:#0f1a22;
+    border:1px solid var(--outline);
+    color:var(--text);
+    font-family:'Montserrat',sans-serif;
+    font-weight:700;
+    font-size:0.7em;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .account-logout:hover{
+    color:#ff8a8a;
+    border-color:#ff8a8a;
+  }
+  .account-menu-loggedout{
+    font-size:0.78em;
+    font-weight:700;
+    letter-spacing:0.06em;
+    color:var(--ice-bright);
+    text-align:center;
+    padding:0.3em 0;
+  }
 
+  /* ---------- hero ---------- */
 
-        .specify-wrapper {
-            position: relative;
-            display: inline-block;
-        }
+  .hero-section{
+    
+    position:relative;
+    z-index:2;
+    width:100%;
+    min-height:82vh;
+    display:flex;
+    align-items:center;
+    background-color:var(--panel);
+    background-image:
+      linear-gradient(90deg, rgba(3,7,11,0.92) 0%, rgba(3,7,11,0.62) 42%, rgba(3,7,11,0.22) 100%),
+      url('media/main_banner.png');
+    background-size:cover;
+    background-position:top;
+    border-bottom:1px solid var(--outline);
+    overflow:hidden;
+  }
 
-        #specify-members-button {
-            cursor: pointer;
-        }
+  .hero-content{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 1.5em;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:1.4em;
+  }
 
-        .member-menu {
-            position: absolute;
-            left: calc(100% + 8px);
-            top: 0;
-            z-index: 1000;
+  .hero-title{
+    font-size:clamp(2.1em, 6vw, 3.6em);
+    font-weight:800;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--text);
+    text-align:left;
+    text-shadow:0 0 26px rgba(111,195,232,0.5), 0 4px 14px rgba(0,0,0,0.75);
+  }
 
-            width: 620px;
-            max-height: 430px;
-            overflow-y: auto;
+  .hero-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.9em;
+  }
+  .hero-btn{
+    padding:0.8em 1.7em;
+    font-family:'Montserrat',sans-serif;
+    font-size:0.78em;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-decoration:none;
+    cursor:pointer;
+    border:1px solid var(--outline);
+    transition:border-color .2s ease, background-color .2s ease, color .2s ease, transform .2s ease;
+    clip-path:polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .hero-btn:hover{
+    transform:translateY(-2px);
+  }
+  .hero-btn-apply{
+    background:var(--ice-bright);
+    border-color:var(--ice-bright);
+    color:#04141c;
+  }
+  .hero-btn-apply:hover{
+    background:#fff;
+    border-color:#fff;
+  }
+  .hero-btn-discord{
+    background:rgba(111,195,232,0.08);
+    border-color:rgba(111,195,232,0.4);
+    color:var(--ice-bright);
+  }
+  .hero-btn-discord:hover{
+    background:rgba(111,195,232,0.18);
+    border-color:var(--ice-bright);
+  }
 
-            padding: 12px;
-            border: 1px solid #ccc;
-            background: #fff;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-        }
+  /* ---------- theme cards ---------- */
 
-        .member-menu[hidden] {
-            display: none;
-        }
+  .theme-section{
+    position:relative;
+    z-index:2;
+    max-width:1080px;
+    margin:0 auto;
+    padding:4.5vh 1.5em 1vh;
+  }
 
-        .member-menu-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #ddd;
-        }
+  .theme-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1em;
+  }
+  @media (max-width:760px){
+    .theme-grid{ grid-template-columns:1fr; }
+  }
 
-        #select-all-members {
-            cursor: pointer;
-        }
+  .theme-card{
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    padding:1.7em 1.3em 1.5em;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:0.75em;
+    transition:outline-color .2s ease, transform .2s ease;
+  }
+  .theme-card:hover{
+    outline-color:var(--ice);
+    transform:translateY(-3px);
+  }
 
-        #selected-count {
-            font-size: 0.9rem;
-        }
+  .theme-icon-wrap{
+    width:42px;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .theme-icon-img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    filter:drop-shadow(0 0 8px rgba(111,195,232,0.4));
+  }
+  .theme-icon-fallback{
+    width:100%;
+    height:100%;
+    filter:drop-shadow(0 0 8px rgba(111,195,232,0.4));
+  }
 
-        .member-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-        }
+  .theme-card-title{
+    font-size:0.86em;
+    font-weight:800;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ice-bright);
+  }
+  .theme-card-text{
+    font-size:0.76em;
+    line-height:1.55;
+    color:var(--text-dim);
+  }
 
-        .member-card {
-            position: relative;
-            min-height: 115px;
-            padding: 12px 8px 8px;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            user-select: none;
-            text-align: center;
-        }
+  /* ---------- roster ---------- */
 
-        .member-card:hover {
-            border-color: #888;
-        }
+  #roster, #invites, #events{
+    scroll-margin-top:88px;
+  }
 
-        .member-card.selected {
-            border-color: #111;
-        }
+  .roster{
+    position:relative;
+    z-index:2;
+    max-width:1080px;
+    margin:0 auto;
+    padding:4.5vh 1.5em 6vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1.4em;
+  }
 
-        .member-avatar {
-            display: block;
-            width: 48px;
-            height: 48px;
-            margin: 0 auto 6px;
-            object-fit: contain;
-        }
+  .row{
+    width:100%;
+    display:grid;
+    gap:0.9em;
+  }
+  .row.owner-row{
+    display:flex;
+    justify-content:center;
+    margin-bottom:0.6em;
+  }
+  .row.member-row{
+    grid-template-columns:repeat(6, 1fr);
+  }
+  @media (max-width:760px){
+    .row.member-row{grid-template-columns:repeat(3, 1fr);}
+  }
+  @media (max-width:420px){
+    .row.member-row{grid-template-columns:repeat(2, 1fr);}
+  }
 
-        .member-name {
-            display: block;
-            font-weight: 600;
-            overflow-wrap: anywhere;
-        }
+  .member-card{
+    position:relative;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    padding:0.9em 0.7em 0.8em;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .2s ease, outline-color .2s ease, background-color .2s ease;
+  }
+  .member-card:hover{
+    transform:translateY(-3px);
+    outline-color:var(--ice);
+  }
+  .member-card.owner{
+    width:200px;
+    padding:1.2em 1em 1.1em;
+  }
 
-        .member-rank {
-            display: block;
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 3px;
-            text-transform: capitalize;
-        }
+  .member-card .corner{
+    position:absolute;
+    width:13px;
+    height:13px;
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .member-card .corner.tl{top:-1px;left:-1px;border-top:2px solid var(--ice-bright);border-left:2px solid var(--ice-bright);}
+  .member-card .corner.tr{top:-1px;right:-1px;border-top:2px solid var(--ice-bright);border-right:2px solid var(--ice-bright);}
+  .member-card .corner.bl{bottom:-1px;left:-1px;border-bottom:2px solid var(--ice-bright);border-left:2px solid var(--ice-bright);}
+  .member-card .corner.br{bottom:-1px;right:-1px;border-bottom:2px solid var(--ice-bright);border-right:2px solid var(--ice-bright);}
+  .member-card:hover .corner{opacity:1;}
 
-        .member-check {
-            position: absolute;
-            top: -6px;
-            right: -6px;
+  .avatar-wrap{
+    position:relative;
+    width:64px;
+    height:64px;
+    margin-bottom:0.6em;
+    border-radius:50%;
+    overflow:hidden;
+    box-shadow:0 0 0 2px rgba(111,195,232,0.25), 0 0 16px rgba(111,195,232,0.12);
+  }
+  .member-card.owner .avatar-wrap{
+    width:84px;
+    height:84px;
+  }
+  .avatar-wrap img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:grayscale(35%) brightness(.85);
+    transition:filter .25s ease;
+  }
+  .member-card:hover .avatar-wrap img{
+    filter:grayscale(0%) brightness(1);
+  }
+  .member-card.open-slot .avatar-wrap img{
+    filter:grayscale(75%) brightness(.45);
+  }
+  .member-card.open-slot:hover{
+    transform:none;
+    outline-color:var(--outline);
+  }
+  .member-card.open-slot{
+    cursor:default;
+  }
 
-            width: 20px;
-            height: 20px;
-            margin: 0;
-            cursor: pointer;
-            accent-color: #111;
-        }
+  .owner-crown{
+    position:absolute;
+    top:-6px;
+    right:-2px;
+    width:20px;
+    height:20px;
+    filter:drop-shadow(0 0 4px rgba(205,242,255,0.6));
+  }
 
-        .member-card:not(.selected) .member-check {
-            display: none;
-        }
+  .card-name{
+    font-size:0.82em;
+    font-weight:700;
+    letter-spacing:0.02em;
+    color:var(--text);
+  }
+  .member-card.owner .card-name{
+    font-size:1.05em;
+  }
+  .card-name.blurred{
+    filter:blur(4px);
+    user-select:none;
+    color:var(--text-dim);
+  }
 
-        .member-menu-empty {
-            grid-column: 1 / -1;
-            padding: 20px;
-            text-align: center;
-        }
+  .card-tag{
+    margin-top:0.35em;
+    font-size:0.6em;
+    font-weight:700;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  .member-card.owner .card-tag{
+    color:var(--ice-bright);
+  }
 
-        @media (max-width: 750px) {
-            .member-menu {
-                left: 0;
-                top: calc(100% + 8px);
-                width: min(620px, calc(100vw - 30px));
-            }
+  /* ---------- modal ---------- */
 
-            .member-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-    </style>
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(3,8,12,0.78);
+    backdrop-filter:blur(3px);
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .3s ease, visibility 0s linear .3s;
+  }
+  .modal-backdrop.open{
+    opacity:1;
+    visibility:visible;
+    transition:opacity .3s ease, visibility 0s linear 0s;
+  }
+
+  .modal-frame{
+    position:relative;
+    width:min(90vw, 340px);
+    transform:scale(.94);
+    transition:transform .3s ease;
+  }
+  .modal-backdrop.open .modal-frame{
+    transform:scale(1);
+  }
+
+  /* Corners are born at the exact center of the frame and travel out to their
+     true corner in two stages (first along one axis, then the other), with a
+     rotateY/rotateZ flip partway through — same choreography as the reference
+     menu card's openCorner1-4 keyframes. */
+  .modal-frame .frame-corner{
+    position:absolute;
+    width:1.2em;
+    height:1.2em;
+    margin:-1.2em;
+    z-index:2;
+  }
+  .frame-corner.tl{
+    top:50%; left:50%;
+    border-top:2px solid var(--ice-bright);
+    border-left:2px solid var(--ice-bright);
+    transform:rotateZ(180deg);
+  }
+  .frame-corner.tr{
+    top:50%; right:50%;
+    border-top:2px solid var(--ice-bright);
+    border-right:2px solid var(--ice-bright);
+    transform:rotateZ(180deg);
+  }
+  .frame-corner.bl{
+    bottom:50%; left:50%;
+    border-bottom:2px solid var(--ice-bright);
+    border-left:2px solid var(--ice-bright);
+    transform:rotateZ(180deg);
+  }
+  .frame-corner.br{
+    bottom:50%; right:50%;
+    border-bottom:2px solid var(--ice-bright);
+    border-right:2px solid var(--ice-bright);
+    transform:rotateZ(180deg);
+  }
+
+  @keyframes openCornerTL{
+    20%{ transform:rotateY(180deg) rotateZ(0); }
+    50%{ top:0; left:50%; }
+    51%{ transform:rotateY(0deg); }
+    100%{ top:0; left:0; transform:rotateY(0deg); }
+  }
+  @keyframes openCornerTR{
+    20%{ transform:rotateY(180deg) rotateZ(0); }
+    50%{ top:0; right:50%; }
+    51%{ transform:rotateY(0deg); }
+    100%{ top:0; right:0; transform:rotateY(0deg); }
+  }
+  @keyframes openCornerBL{
+    20%{ transform:rotateY(180deg) rotateZ(0); }
+    50%{ bottom:0; left:50%; }
+    51%{ transform:rotateY(0deg); }
+    100%{ bottom:0; left:0; transform:rotateY(0deg); }
+  }
+  @keyframes openCornerBR{
+    20%{ transform:rotateY(180deg) rotateZ(0); }
+    50%{ bottom:0; right:50%; }
+    51%{ transform:rotateY(0deg); }
+    100%{ bottom:0; right:0; transform:rotateY(0deg); }
+  }
+
+  /* closing plays the same path in reverse, back toward the center point */
+  .modal-backdrop.closing .frame-corner.tl{ animation:0.35s openCornerTL ease reverse; }
+  .modal-backdrop.closing .frame-corner.tr{ animation:0.35s openCornerTR ease reverse; }
+  .modal-backdrop.closing .frame-corner.bl{ animation:0.35s openCornerBL ease reverse; }
+  .modal-backdrop.closing .frame-corner.br{ animation:0.35s openCornerBR ease reverse; }
+
+  .modal-backdrop.open .frame-corner.tl{ animation:0.4s openCornerTL ease forwards; }
+  .modal-backdrop.open .frame-corner.tr{ animation:0.4s openCornerTR ease forwards; }
+  .modal-backdrop.open .frame-corner.bl{ animation:0.4s openCornerBL ease forwards; }
+  .modal-backdrop.open .frame-corner.br{ animation:0.4s openCornerBR ease forwards; }
+
+  .modal-panel{
+    background-color:var(--panel);
+    outline:4px solid #1d2c34;
+    border:1px solid #000;
+  }
+
+  .panel-header{
+    display:flex;
+    align-items:center;
+    gap:0.6em;
+    height:3.1em;
+    padding:0 1em;
+    background:repeating-linear-gradient(135deg, var(--stripe), var(--stripe) 10px, transparent 10px, transparent 20px);
+    border-bottom:4px solid var(--stripe);
+  }
+  .panel-header svg{
+    width:20px;
+    height:20px;
+    flex-shrink:0;
+  }
+  .panel-header span{
+    font-size:0.85em;
+    font-weight:800;
+    letter-spacing:0.2em;
+    color:var(--ice-bright);
+  }
+
+  .panel-body{
+    position:relative;
+    padding:1.4em 1.4em 1.1em;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .panel-body::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:repeating-linear-gradient(135deg, var(--stripe), var(--stripe) 10px, transparent 10px, transparent 20px);
+    opacity:0.12;
+  }
+
+  .panel-avatar{
+    position:relative;
+    width:78px;
+    height:78px;
+    border-radius:50%;
+    overflow:hidden;
+    box-shadow:0 0 0 3px rgba(111,195,232,0.2), 0 0 22px rgba(111,195,232,0.18);
+  }
+  .panel-avatar img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+
+  .panel-id{
+    position:relative;
+    margin-top:0.7em;
+    text-align:center;
+  }
+  .panel-name{
+    display:block;
+    font-size:1.05em;
+    font-weight:800;
+    letter-spacing:0.02em;
+  }
+  .panel-tag{
+    display:block;
+    margin-top:0.25em;
+    font-size:0.6em;
+    font-weight:700;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--ice);
+  }
+
+  .panel-stats{
+    position:relative;
+    width:100%;
+    margin-top:1.1em;
+    display:flex;
+    flex-direction:column;
+    gap:0.55em;
+  }
+  .stat{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:1em;
+    padding-bottom:0.5em;
+    border-bottom:1px solid rgba(111,195,232,0.12);
+  }
+  .stat span{
+    font-size:0.68em;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .stat b{
+    font-size:0.8em;
+    font-weight:600;
+    color:var(--text);
+    text-align:right;
+  }
+
+  .panel-footer{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:0.8em;
+    height:3.6em;
+    padding:0 1em;
+    background:repeating-linear-gradient(135deg, var(--stripe), var(--stripe) 10px, transparent 10px, transparent 20px);
+    border-top:4px solid var(--stripe);
+  }
+
+  .pbtn{
+    padding:0.6em 1.3em;
+    background:#0f1a22;
+    border:1px solid var(--outline);
+    color:var(--text);
+    font-family:'Montserrat',sans-serif;
+    font-weight:700;
+    font-size:0.75em;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:color .2s ease, border-color .2s ease, background-color .2s ease;
+  }
+  .pbtn:hover{
+    color:var(--ice-bright);
+    border-color:var(--ice-bright);
+  }
+  .pbtn.more{
+    background:rgba(111,195,232,0.1);
+  }
+
+  /* ---------- rules panel ---------- */
+
+  .rules-frame{
+    width:min(90vw, 380px);
+  }
+  .rules-body{
+    align-items:stretch;
+    padding:1.3em 1.3em 1.1em;
+  }
+  .rules-list{
+    position:relative;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0.6em;
+    list-style:none;
+  }
+  .rule-item{
+    display:flex;
+    align-items:center;
+    gap:0.8em;
+    padding:0.65em 0.8em;
+    background:rgba(111,195,232,0.05);
+    border:1px solid rgba(111,195,232,0.14);
+  }
+  .rule-index{
+    flex-shrink:0;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(111,195,232,0.15);
+    border:1px solid var(--ice);
+    font-size:0.7em;
+    font-weight:800;
+    color:var(--ice-bright);
+  }
+  .rule-text{
+    font-size:0.82em;
+    color:var(--text);
+    text-align:left;
+  }
+
+  /* ---------- shared send button (Uiverse by marcelodolza) ---------- */
+
+  .button {
+    --primary: #ff5569;
+    --neutral-1: #f7f8f7;
+    --neutral-2: #e7e7e7;
+    --radius: 14px;
+
+    cursor: pointer;
+    border-radius: var(--radius);
+    color: #16222b;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+    border: none;
+    box-shadow: 0 0.5px 0.5px 1px rgba(255, 255, 255, 0.2),
+      0 10px 20px rgba(0, 0, 0, 0.2), 0 4px 5px 0px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+    min-width: 200px;
+    padding: 20px;
+    height: 68px;
+    font-family: 'Montserrat', sans-serif;
+    font-style: normal;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 1px 2px rgba(255, 255, 255, 0.3),
+      0 15px 30px rgba(0, 0, 0, 0.3), 0 10px 3px -3px rgba(0, 0, 0, 0.04);
+  }
+  .button:active {
+    transform: scale(1);
+    box-shadow: 0 0 1px 2px rgba(255, 255, 255, 0.3),
+      0 10px 3px -3px rgba(0, 0, 0, 0.2);
+  }
+  .button:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    border: 2.5px solid transparent;
+    background: linear-gradient(var(--neutral-1), var(--neutral-2)) padding-box,
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.45))
+        border-box;
+    z-index: 0;
+    transition: all 0.4s ease;
+  }
+  .button:hover::after {
+    transform: scale(1.05, 1.1);
+    box-shadow: inset 0 -1px 3px 0 rgba(255, 255, 255, 1);
+  }
+  .button::before {
+    content: "";
+    inset: 7px 6px 6px 6px;
+    position: absolute;
+    background: linear-gradient(to top, var(--neutral-1), var(--neutral-2));
+    border-radius: 30px;
+    filter: blur(0.5px);
+    z-index: 2;
+  }
+  .state p {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .state .icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    transform: scale(1.25);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .state .icon svg {
+    overflow: visible;
+  }
+
+  .outline {
+    position: absolute;
+    border-radius: inherit;
+    overflow: hidden;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    inset: -2px -3.5px;
+  }
+  .outline::before {
+    content: "";
+    position: absolute;
+    inset: -100%;
+    background: conic-gradient(
+      from 180deg,
+      transparent 60%,
+      white 80%,
+      transparent 100%
+    );
+    animation: spin 2s linear infinite;
+    animation-play-state: paused;
+  }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .button:hover .outline { opacity: 1; }
+  .button:hover .outline::before { animation-play-state: running; }
+
+  .state p span {
+    display: block;
+    opacity: 0;
+    animation: slideDown 0.8s ease forwards calc(var(--i) * 0.03s);
+  }
+  .button:hover p span {
+    opacity: 1;
+    animation: wave 0.5s ease forwards calc(var(--i) * 0.02s);
+  }
+  .button:focus p span {
+    opacity: 1;
+    animation: disapear 0.6s ease forwards calc(var(--i) * 0.03s);
+  }
+  @keyframes wave {
+    30% { opacity: 1; transform: translateY(4px) translateX(0) rotate(0); }
+    50% { opacity: 1; transform: translateY(-3px) translateX(0) rotate(0); color: var(--primary); }
+    100% { opacity: 1; transform: translateY(0) translateX(0) rotate(0); }
+  }
+  @keyframes slideDown {
+    0% { opacity: 0; transform: translateY(-20px) translateX(5px) rotate(-90deg); color: var(--primary); filter: blur(5px); }
+    30% { opacity: 1; transform: translateY(4px) translateX(0) rotate(0); filter: blur(0); }
+    50% { opacity: 1; transform: translateY(-3px) translateX(0) rotate(0); }
+    100% { opacity: 1; transform: translateY(0) translateX(0) rotate(0); }
+  }
+  @keyframes disapear {
+    from { opacity: 1; }
+    to { opacity: 0; transform: translateX(5px) translateY(20px); color: var(--primary); filter: blur(5px); }
+  }
+
+  .state--default .icon svg { animation: land 0.6s ease forwards; }
+  .button:hover .state--default .icon { transform: rotate(45deg) scale(1.25); }
+  .button:focus .state--default svg { animation: takeOff 0.8s linear forwards; }
+  .button:focus .state--default .icon { transform: rotate(0) scale(1.25); }
+  @keyframes takeOff {
+    0% { opacity: 1; }
+    60% { opacity: 1; transform: translateX(70px) rotate(45deg) scale(2); }
+    100% { opacity: 0; transform: translateX(160px) rotate(45deg) scale(0); }
+  }
+  @keyframes land {
+    0% { transform: translateX(-60px) translateY(30px) rotate(-50deg) scale(2); opacity: 0; filter: blur(3px); }
+    100% { transform: translateX(0) translateY(0) rotate(0); opacity: 1; filter: blur(0); }
+  }
+
+  .state--default .icon:before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    width: 0;
+    left: -5px;
+    background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.5));
+  }
+  .button:focus .state--default .icon:before {
+    animation: contrail 0.8s linear forwards;
+  }
+  @keyframes contrail {
+    0% { width: 0; opacity: 1; }
+    8% { width: 15px; }
+    60% { opacity: 0.7; width: 80px; }
+    100% { opacity: 0; width: 160px; }
+  }
+
+  .state {
+    padding-left: 29px;
+    z-index: 2;
+    display: flex;
+    position: relative;
+  }
+  .state--default span:nth-child(4) { margin-right: 5px; }
+  .state--sent { display: none; }
+  .state--sent svg { transform: scale(1.25); margin-right: 8px; }
+  .button:focus .state--default { position: absolute; }
+  .button:focus .state--sent { display: flex; }
+  .button:focus .state--sent span {
+    opacity: 0;
+    animation: slideDown 0.8s ease forwards calc(var(--i) * 0.2s);
+  }
+  .button:focus .state--sent .icon svg {
+    opacity: 0;
+    animation: appear 1.2s ease forwards 0.8s;
+  }
+  @keyframes appear {
+    0% { opacity: 0; transform: scale(4) rotate(-40deg); color: var(--primary); filter: blur(4px); }
+    30% { opacity: 1; transform: scale(0.6); filter: blur(1px); }
+    50% { opacity: 1; transform: scale(1.2); filter: blur(0); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* ---------- invites section ---------- */
+
+  .invites-section{
+    position:relative;
+    z-index:2;
+    max-width:640px;
+    margin:0 auto;
+    padding:1vh 1.5em 9vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1.7em;
+  }
+
+  /* ---------- section title banners (image + overlapping text) ---------- */
+
+  .section-title{
+    position:relative;
+    width:100%;
+    max-width:fit-content;
+    min-height:fit-content;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .section-title-bg{
+    position:reltive    ;
+   
+    width:auto;
+    height:100px;
+    object-fit:contain;
+    opacity:0.4;
+    pointer-events:none;
+  }
+  .section-title-text{
+    position:relative;
+    
+    z-index:1;
+    font-size:1.8em;
+    font-weight:800;
+    letter-spacing:0.3em;
+    text-transform:uppercase;
+    color:var(--ice-bright);
+    text-shadow:0 0 16px rgba(111,195,232,0.4), 0 2px 6px rgba(0,0,0,0.65);
+  }
+
+  .invite-chat{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0.6em;
+  }
+
+  /* sent invites — newest at the bottom, scrolls once it grows past ~5 rows.
+     Height is fixed (not max-height) so the panel holds its full size even
+     empty or with only a couple of invites — no layout jump as it fills up. */
+  .invites-list{
+    position:relative;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:0.5em;
+    height:270px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+  .invites-list::-webkit-scrollbar{ width:6px; }
+  .invites-list::-webkit-scrollbar-track{ background:transparent; }
+  .invites-list::-webkit-scrollbar-thumb{ background:rgba(111,195,232,0.35); border-radius:3px; }
+
+  .invites-empty{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:0.72em;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    opacity:0.5;
+    pointer-events:none;
+  }
+
+  .invite-item{
+    align-self:flex-end;
+    max-width:88%;
+    display:flex;
+    align-items:center;
+    gap:0.5em;
+    padding:0.55em 0.85em;
+    background:linear-gradient(135deg, rgba(111,195,232,0.16), rgba(111,195,232,0.06));
+    border:1px solid rgba(111,195,232,0.35);
+    clip-path:polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+    font-size:0.78em;
+    color:var(--ice-bright);
+  }
+  .invite-item-icon{
+    flex-shrink:0;
+    color:var(--ice-bright);
+  }
+  .invite-item-sender{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:0.4em;
+  }
+  .invite-item-sender b{
+    font-weight:800;
+    color:var(--ice-bright);
+    white-space:nowrap;
+  }
+  .invite-item-sender-tag{
+    padding:0.15em 0.45em;
+    border:1px solid rgba(111,195,232,0.35);
+    font-size:0.6em;
+    font-weight:700;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .invite-item a{
+    color:inherit;
+    text-decoration:none;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .invite-item a:hover{
+    text-decoration:underline;
+  }
+
+  /* input row — thin, single line, link-only */
+  .invite-panel{
+    width:100%;
+    display:flex;
+    flex-direction:row;
+    align-items:stretch;
+    gap:0.7em;
+  }
+
+  .geo-box{
+    flex:1;
+    min-width:0;
+    padding:2px;
+    clip-path:polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    background:linear-gradient(135deg, var(--ice), rgba(111,195,232,0.15));
+  }
+
+  .invite-input{
+    display:block;
+    width:100%;
+    height:100%;
+    min-height:46px;
+    border:none;
+    outline:none;
+    clip-path:polygon(11px 0, 100% 0, 100% calc(100% - 11px), calc(100% - 11px) 100%, 0 100%, 0 11px);
+    background:var(--panel);
+    color:var(--text);
+    font-family:'Montserrat',sans-serif;
+    font-size:0.85em;
+    padding:0 1.1em;
+  }
+  .invite-input::placeholder{
+    color:var(--text-dim);
+  }
+  .invite-input:focus{
+    background:#0e1a22;
+  }
+
+  /* ---------- upcoming events ---------- */
+
+  .events-section{
+    position:relative;
+    z-index:2;
+    max-width:640px;
+    margin:0 auto;
+    padding:5vh 1.5em 9vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1.1em;
+  }
+
+  .event-card{
+    position:relative;
+    width:100%;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    padding:1.1em 1.2em 1.2em;
+    transition:outline-color .2s ease;
+  }
+  .event-card:hover{
+    outline-color:var(--ice);
+  }
+
+  .event-card-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:0.6em;
+  }
+  .event-badge{
+    padding:0.25em 0.6em;
+    background:rgba(111,195,232,0.1);
+    border:1px solid rgba(111,195,232,0.4);
+    font-size:0.6em;
+    font-weight:800;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ice-bright);
+  }
+  .event-date{
+    font-size:0.72em;
+    font-weight:700;
+    letter-spacing:0.04em;
+    color:var(--text-dim);
+  }
+
+  .event-name{
+    font-size:1.05em;
+    font-weight:800;
+    letter-spacing:0.02em;
+    color:var(--text);
+    margin-bottom:0.65em;
+  }
+
+  .event-meta{
+    display:flex;
+    align-items:baseline;
+    gap:0.6em;
+    padding-bottom:0.65em;
+    margin-bottom:0.7em;
+    border-bottom:1px solid rgba(111,195,232,0.12);
+  }
+  .event-meta-label{
+    font-size:0.62em;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .event-meta-value{
+    font-size:0.8em;
+    font-weight:600;
+    color:var(--text);
+  }
+
+  .event-invite-note{
+    font-size:0.74em;
+    line-height:1.55;
+    color:var(--text-dim);
+  }
+  .event-invite-note b{
+    color:var(--ice-bright);
+  }
+  .event-invite-link{
+    color:var(--ice-bright);
+    text-decoration:none;
+    border-bottom:1px dashed rgba(111,195,232,0.5);
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .event-invite-link:hover{
+    color:var(--ice);
+    border-color:var(--ice);
+  }
+
+  /* ---------- visibility dropdown ---------- */
+
+  .vis-select{
+    position:relative;
+    flex-shrink:0;
+    display:flex;
+  }
+
+  .vis-trigger{
+    display:flex;
+    align-items:center;
+    gap:0.55em;
+    padding:0 0.9em;
+    background:var(--panel);
+    border:1px solid var(--outline);
+    color:var(--text);
+    font-family:'Montserrat',sans-serif;
+    font-size:0.78em;
+    font-weight:600;
+    letter-spacing:0.02em;
+    white-space:nowrap;
+    cursor:pointer;
+    clip-path:polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    transition:border-color .2s ease, color .2s ease;
+  }
+  .vis-trigger:hover,
+  .vis-select.open .vis-trigger{
+    border-color:var(--ice);
+    color:var(--ice-bright);
+  }
+  .vis-trigger svg{
+    width:11px;
+    height:11px;
+    flex-shrink:0;
+    transition:transform .2s ease;
+  }
+  .vis-select.open .vis-trigger svg{
+    transform:rotate(180deg);
+  }
+
+  .vis-dropdown{
+    position:absolute;
+    top:calc(100% + 8px);
+    left:0;
+    min-width:190px;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    box-shadow:0 12px 28px rgba(0,0,0,0.45);
+    z-index:20;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(6px);
+    transition:opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
+  }
+  .vis-select.open .vis-dropdown{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0);
+    transition:opacity .18s ease, transform .18s ease, visibility 0s linear 0s;
+  }
+
+  .vis-option{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.6em;
+    padding:0.7em 0.9em;
+    font-size:0.78em;
+    font-weight:600;
+    color:var(--text);
+    cursor:pointer;
+    border-bottom:1px solid rgba(111,195,232,0.1);
+    transition:background-color .15s ease, color .15s ease;
+  }
+  .vis-option:last-child{ border-bottom:none; }
+  .vis-option:hover{
+    background:rgba(111,195,232,0.08);
+    color:var(--ice-bright);
+  }
+  .vis-option.active{
+    color:var(--ice-bright);
+  }
+  .vis-option .vis-default-tag{
+    font-size:0.85em;
+    color:var(--text-dim);
+    font-weight:500;
+  }
+  .vis-option .vis-chevron-right{
+    width:10px;
+    height:10px;
+    opacity:0.6;
+    flex-shrink:0;
+  }
+
+  /* ---------- specify-recipients small attached flyout ---------- */
+
+  .vis-option-specify{
+    position:relative;
+    padding:0;
+    display:block;
+  }
+  .vis-specify-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.6em;
+    padding:0.7em 0.9em;
+  }
+  .vis-option-specify:hover .vis-specify-toggle{
+    color:var(--ice-bright);
+  }
+  .vis-option-specify.active .vis-specify-toggle{
+    color:var(--ice-bright);
+  }
+
+  .vis-specify-flyout{
+    position:absolute;
+    top:-1px;
+    left:calc(100% + 8px);
+    width:200px;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    box-shadow:0 12px 28px rgba(0,0,0,0.45);
+    z-index:25;
+    display:flex;
+    flex-direction:column;
+    opacity:0;
+    visibility:hidden;
+    transform:translateX(6px);
+    transition:opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
+  }
+  .vis-select.specify-open .vis-specify-flyout{
+    opacity:1;
+    visibility:visible;
+    transform:translateX(0);
+    transition:opacity .18s ease, transform .18s ease, visibility 0s linear 0s;
+  }
+  @media (max-width:560px){
+    .vis-specify-flyout{
+      left:0;
+      top:100%;
+      width:100%;
+      margin-top:4px;
+    }
+  }
+
+  .vis-specify-selectall{
+    flex-shrink:0;
+    padding:0.7em 0.8em;
+    border-bottom:1px solid rgba(111,195,232,0.12);
+  }
+  .vis-specify-selectall .vis-checkbox-label{
+    font-size:0.66em;
+  }
+
+  .vis-specify-list{
+    max-height:190px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+  }
+  .vis-specify-list::-webkit-scrollbar{ width:5px; }
+  .vis-specify-list::-webkit-scrollbar-track{ background:transparent; }
+  .vis-specify-list::-webkit-scrollbar-thumb{ background:rgba(111,195,232,0.35); border-radius:3px; }
+
+  .vis-specify-row{
+    display:flex;
+    align-items:center;
+    gap:0.55em;
+    padding:0.5em 0.8em;
+    font-size:0.75em;
+    cursor:pointer;
+    border-bottom:1px solid rgba(111,195,232,0.08);
+    transition:background-color .15s ease;
+  }
+  .vis-specify-row:last-child{ border-bottom:none; }
+  .vis-specify-row:hover{
+    background:rgba(111,195,232,0.08);
+  }
+  .vis-specify-name{
+    font-weight:700;
+    color:var(--text);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .vis-specify-tag{
+    flex-shrink:0;
+    margin-left:auto;
+    font-size:0.78em;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  .vis-checkbox{
+    display:inline-flex;
+    align-items:center;
+    gap:0.6em;
+    cursor:pointer;
+    user-select:none;
+  }
+  .vis-checkbox input{
+    position:absolute;
+    opacity:0;
+    width:0;
+    height:0;
+  }
+  .vis-checkbox-box{
+    position:relative;
+    width:16px;
+    height:16px;
+    flex-shrink:0;
+    border:1px solid var(--outline);
+    background:#0f1a22;
+    transition:border-color .2s ease, background-color .2s ease;
+  }
+  .vis-checkbox-box::after{
+    content:"";
+    position:absolute;
+    left:4px;
+    top:1px;
+    width:5px;
+    height:9px;
+    border:solid var(--bg-0);
+    border-width:0 2px 2px 0;
+    transform:rotate(45deg);
+    opacity:0;
+    transition:opacity .15s ease;
+  }
+  .vis-checkbox input:checked + .vis-checkbox-box{
+    background:var(--ice-bright);
+    border-color:var(--ice-bright);
+  }
+  .vis-checkbox input:checked + .vis-checkbox-box::after{
+    opacity:1;
+  }
+  .vis-checkbox input:indeterminate + .vis-checkbox-box{
+    background:var(--ice);
+    border-color:var(--ice);
+  }
+  .vis-checkbox input:indeterminate + .vis-checkbox-box::after{
+    opacity:1;
+    top:6px;
+    left:3px;
+    width:7px;
+    height:0;
+    border-width:0 0 2px 0;
+    transform:none;
+  }
+  .vis-checkbox-label{
+    font-size:0.78em;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text);
+  }
+
+  /* narrow screens: input drops to its own row, dropdown + send share the next */
+  @media (max-width:560px){
+    .invite-panel{
+      flex-wrap:wrap;
+    }
+    .geo-box{
+      flex:1 1 100%;
+    }
+    .vis-select{
+      flex:1 1 auto;
+    }
+    .vis-trigger{
+      width:100%;
+      justify-content:space-between;
+    }
+    .button.send-btn{
+      flex:1 1 auto;
+      min-width:0;
+    }
+  }
+
+  /* shared send button, scaled down + recolored to the icy palette */
+  .button.send-btn{
+    --primary: var(--ice-bright);
+    min-width:130px;
+    height:48px;
+    padding:0 20px;
+    font-size:14px;
+    border-radius:11px;
+  }
+  .button.send-btn .state{
+    padding-left:22px;
+  }
+
+  /* no spinning border sweep on hover */
+  .button.send-btn:hover .outline{
+    opacity:0;
+  }
+
+  /* once the initial letter reveal has played, hovering off shouldn't replay it —
+     idle state (not hovered, not focused) just holds the resting look statically */
+  .button.send-btn.letters-settled:not(:hover):not(:focus) .state p span{
+    animation:none;
+    opacity:1;
+    transform:none;
+  }
+</style>
 </head>
-
 <body>
 
-    <h1>Rime Wardens [R1ME]</h1>
-
-    <div id="user-section">
-        <div id="profile-area" hidden>
-            <div id="profile-info">
-                <img id="profile-avatar" class="profile-avatar" src="" alt="Member avatar">
-                <span id="user-name"></span>
-            </div>
-            <button id="logout-button">Logout</button>
-        </div>
-        <span id="session-status">Checking session...</span>
+<header class="site-header">
+  <div class="site-header-inner">
+    <div class="clan-brand">
+      <div class="clan-name-row">
+        <span class="clan-logo-wrap">
+          <img class="clan-logo-img" id="clanLogoImg" src="media/clan_logo.png" alt=""
+               onerror="this.onerror=null;this.style.display='none';document.getElementById('clanIconFallback').style.display='block';">
+          <svg class="clan-icon" id="clanIconFallback" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+            <path d="M12 2L20 5.5V11C20 16 16.7 20.2 12 22C7.3 20.2 4 16 4 11V5.5L12 2Z" stroke="#cdf2ff" stroke-width="1.4" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="clan-name">Rime Wardens</span>
+      </div>
+      <span class="clan-tag">[r1me]</span>
     </div>
 
-    <hr>
+    <nav class="site-nav">
+      <a class="nav-link" href="#roster">Members</a>
+      <a class="nav-link" href="#invites">Invites</a>
+      <a class="nav-link" href="#events">Announcements</a>
+      <button type="button" class="nav-link" id="navRules">Rules</button>
+    </nav>
 
-    <section id="login-section" hidden>
-        <h2>Login</h2>
+    <div class="account-wrap" id="accountWrap">
+      <button class="account-avatar" id="accountAvatarBtn" type="button" aria-label="Account menu">
+        <img id="accountAvatarImg" src="" alt="">
+      </button>
+      <div class="account-menu" id="accountMenu">
+        <div class="account-menu-label">Signed in as</div>
+        <div class="account-menu-user" id="accountMenuUser"></div>
+        <button class="account-logout" id="logoutBtn" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+</header>
 
-        <form id="login-form">
-            <input
-                id="username"
-                type="text"
-                placeholder="Username"
-                required
-            >
+<div class="snow" id="snow"></div>
 
-            <input
-                id="password"
-                type="password"
-                placeholder="Password"
-                required
-            >
+<section class="hero-section">
+  <div class="hero-content">
+    <h1 class="hero-title">Rime Wardens</h1>
+    <div class="hero-buttons">
+      <a class="hero-btn hero-btn-apply" href="https://cryzen.io/center/clans/clan/R1ME" target="_blank" rel="noopener noreferrer">Apply</a>
+      <a class="hero-btn hero-btn-discord" href="https://discord.gg/samplecode" target="_blank" rel="noopener noreferrer">Discord</a>
+    </div>
+  </div>
+</section>
 
-            <button type="submit">Login</button>
-        </form>
+<section class="theme-section">
+  <div class="theme-grid">
 
-        <p id="login-message"></p>
-    </section>
+    <div class="theme-card">
+      <span class="theme-icon-wrap">
+        <img class="theme-icon-img" src="media/theme_icon_precision.png" alt=""
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <svg class="theme-icon-fallback" style="display:none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="8" stroke="#cdf2ff" stroke-width="1.4"/>
+          <circle cx="12" cy="12" r="1.4" fill="#cdf2ff"/>
+          <line x1="12" y1="2" x2="12" y2="6" stroke="#cdf2ff" stroke-width="1.4"/>
+          <line x1="12" y1="18" x2="12" y2="22" stroke="#cdf2ff" stroke-width="1.4"/>
+          <line x1="2" y1="12" x2="6" y2="12" stroke="#cdf2ff" stroke-width="1.4"/>
+          <line x1="18" y1="12" x2="22" y2="12" stroke="#cdf2ff" stroke-width="1.4"/>
+        </svg>
+      </span>
+      <div class="theme-card-title">Precision Plays</div>
+      <div class="theme-card-text">Every round is calculated — we out-think before we out-shoot.</div>
+    </div>
 
-    <section id="member-section">
+    <div class="theme-card">
+      <span class="theme-icon-wrap">
+        <img class="theme-icon-img" src="media/theme_icon_unity.png" alt=""
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <svg class="theme-icon-fallback" style="display:none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L20 5.5V11C20 16 16.7 20.2 12 22C7.3 20.2 4 16 4 11V5.5L12 2Z" stroke="#cdf2ff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="theme-card-title">One Clan, One Shield</div>
+      <div class="theme-card-text">We watch each other's backs, in-game and out.</div>
+    </div>
 
-        <h2>Invites</h2>
+    <div class="theme-card">
+      <span class="theme-icon-wrap">
+        <img class="theme-icon-img" src="media/theme_icon_frost.png" alt=""
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <svg class="theme-icon-fallback" style="display:none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#cdf2ff" stroke-width="1.4" stroke-linecap="round">
+            <line x1="12" y1="2" x2="12" y2="22"/>
+            <line x1="4.2" y1="6" x2="19.8" y2="18"/>
+            <line x1="19.8" y1="6" x2="4.2" y2="18"/>
+          </g>
+        </svg>
+      </span>
+      <div class="theme-card-title">Ice-Cold Focus</div>
+      <div class="theme-card-text">Steady aim, calm calls — even when the game's on the line.</div>
+    </div>
 
-        <div id="invite-list">
-            Loading...
-        </div>
+  </div>
+</section>
 
-        <hr>
 
-        <h2>Send Invite</h2>
-        <form id="invite-form">
-            <div class="invite-compose-row">
 
-                <input
-                    id="invite-value"
-                    type="text"
-                    placeholder="Cryzen invite URL or ID"
-                    required
-                >
+<div class="roster" id="roster">
+  <span class="section-title-text" style="margin-top: 12px;">Invites</span>
+</div>
 
-                <div class="visibility-options">
-                <label>
-                    <input
-                        type="radio"
-                        name="access-type"
-                        value="public"
-                        checked
-                    >
-                    Public
-                </label>
+<div class="invites-section" id="invites">
+  <div class="section-title">
+    <img class="section-title-bg" src="media/invites_title.png" alt=""
+         onerror="this.onerror=null;this.style.display='none';">
+    <span class="section-title-text" style="position: absolute;">Invites</span>
+  </div>
 
-                <label>
-                    <input
-                        type="radio"
-                        name="access-type"
-                        value="members_only"
-                    >
-                    Members only
-                </label>
+  <div class="invite-chat">
+    <div class="invites-list" id="invitesList">
+      <div class="invites-empty" id="invitesEmpty">No invites sent yet</div>
+    </div>
 
-                <div class="specify-wrapper">
-                    <button
-                        id="specify-members-button"
-                        type="button"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                    >
-                        Specify members
-                    </button>
+    <div class="invite-panel">
+      <div class="geo-box">
+        <input class="invite-input" id="inviteInput" type="url" placeholder="https://cryzen.io/play?id=lrSccWT9R:eu">
+      </div>
 
-                    <div
-                        id="member-menu"
-                        class="member-menu"
-                        hidden
-                    >
-                        <div class="member-menu-header">
-                            <label>
-                                <input
-                                    id="select-all-members"
-                                    type="checkbox"
-                                >
-                                Select all
-                            </label>
-
-                            <span id="selected-count">
-                                0 selected
-                            </span>
-                        </div>
-
-                        <div id="member-grid" class="member-grid">
-                            Loading members...
-                        </div>
-                    </div>
-                </div>
-                </div>
-
-                <button type="submit">Send Invite</button>
+      <div class="vis-select" id="visSelect">
+        <button type="button" class="vis-trigger" id="visTrigger">
+          <span id="visLabel">Public</span>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="vis-dropdown" id="visDropdown">
+          <div class="vis-option active" data-value="public">
+            <span>Public</span><span class="vis-default-tag">(Default)</span>
+          </div>
+          <div class="vis-option" data-value="members">
+            <span>Members Only</span>
+          </div>
+          <div class="vis-option vis-option-specify" id="visOptionSpecify">
+            <div class="vis-specify-toggle" id="visSpecifyToggle">
+              <span>Specify</span>
+              <svg class="vis-chevron-right" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
-        </form>
+            <div class="vis-specify-flyout" id="visSpecifyFlyout">
+              <div class="vis-specify-selectall">
+                <label class="vis-checkbox">
+                  <input type="checkbox" id="specifySelectAllChk">
+                  <span class="vis-checkbox-box"></span>
+                  <span class="vis-checkbox-label">Select All</span>
+                </label>
+              </div>
+              <div class="vis-specify-list" id="visSpecifyList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <p id="invite-message"></p>
+      <button class="button send-btn" type="button" id="sendInviteBtn">
+      <div class="outline"></div>
+      <div class="state state--default">
+        <div class="icon">
+          <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g style="filter: url(#shadow)">
+              <path d="M14.2199 21.63C13.0399 21.63 11.3699 20.8 10.0499 16.83L9.32988 14.67L7.16988 13.95C3.20988 12.63 2.37988 10.96 2.37988 9.78001C2.37988 8.61001 3.20988 6.93001 7.16988 5.60001L15.6599 2.77001C17.7799 2.06001 19.5499 2.27001 20.6399 3.35001C21.7299 4.43001 21.9399 6.21001 21.2299 8.33001L18.3999 16.82C17.0699 20.8 15.3999 21.63 14.2199 21.63ZM7.63988 7.03001C4.85988 7.96001 3.86988 9.06001 3.86988 9.78001C3.86988 10.5 4.85988 11.6 7.63988 12.52L10.1599 13.36C10.3799 13.43 10.5599 13.61 10.6299 13.83L11.4699 16.35C12.3899 19.13 13.4999 20.12 14.2199 20.12C14.9399 20.12 16.0399 19.13 16.9699 16.35L19.7999 7.86001C20.3099 6.32001 20.2199 5.06001 19.5699 4.41001C18.9199 3.76001 17.6599 3.68001 16.1299 4.19001L7.63988 7.03001Z" fill="currentColor"></path>
+              <path d="M10.11 14.4C9.92005 14.4 9.73005 14.33 9.58005 14.18C9.29005 13.89 9.29005 13.41 9.58005 13.12L13.16 9.53C13.45 9.24 13.93 9.24 14.22 9.53C14.51 9.82 14.51 10.3 14.22 10.59L10.64 14.18C10.5 14.33 10.3 14.4 10.11 14.4Z" fill="currentColor"></path>
+            </g>
+            <defs>
+              <filter id="shadow">
+                <fedropshadow dx="0" dy="1" stdDeviation="0.6" flood-opacity="0.5"></fedropshadow>
+              </filter>
+            </defs>
+          </svg>
+        </div>
+        <p>
+          <span style="--i:0">S</span>
+          <span style="--i:1">e</span>
+          <span style="--i:2">n</span>
+          <span style="--i:3">d</span>
+        </p>
+      </div>
+      <div class="state state--sent">
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" height="1em" width="1em" stroke-width="0.5px" stroke="black">
+            <g style="filter: url(#shadow)">
+              <path fill="currentColor" d="M12 22.75C6.07 22.75 1.25 17.93 1.25 12C1.25 6.07 6.07 1.25 12 1.25C17.93 1.25 22.75 6.07 22.75 12C22.75 17.93 17.93 22.75 12 22.75ZM12 2.75C6.9 2.75 2.75 6.9 2.75 12C2.75 17.1 6.9 21.25 12 21.25C17.1 21.25 21.25 17.1 21.25 12C21.25 6.9 17.1 2.75 12 2.75Z"></path>
+              <path fill="currentColor" d="M10.5795 15.5801C10.3795 15.5801 10.1895 15.5001 10.0495 15.3601L7.21945 12.5301C6.92945 12.2401 6.92945 11.7601 7.21945 11.4701C7.50945 11.1801 7.98945 11.1801 8.27945 11.4701L10.5795 13.7701L15.7195 8.6301C16.0095 8.3401 16.4895 8.3401 16.7795 8.6301C17.0695 8.9201 17.0695 9.4001 16.7795 9.6901L11.1095 15.3601C10.9695 15.5001 10.7795 15.5801 10.5795 15.5801Z"></path>
+            </g>
+          </svg>
+        </div>
+        <p>
+          <span style="--i:5">S</span>
+          <span style="--i:6">e</span>
+          <span style="--i:7">n</span>
+          <span style="--i:8">t</span>
+        </p>
+      </div>
+    </button>
+    </div>
+  </div>
+</div>
 
+<div class="events-section" id="events">
+  <div class="section-title">
+    <img class="section-title-bg" src="media/events_title.png" alt=""
+         onerror="this.onerror=null;this.style.display='none';">
+    <span class="section-title-text">Upcoming Events</span>
+  </div>
 
+  <div class="event-card">
+    <div class="event-card-head">
+      <span class="event-badge">Event</span>
+      <span class="event-date">8/14/2026</span>
+    </div>
+    <div class="event-name">Practice Session</div>
+    <div class="event-meta">
+      <span class="event-meta-label">Match Type</span>
+      <span class="event-meta-value">Custom (TDM and DM)</span>
+    </div>
+    <div class="event-invite-note">
+      Invite will be shared to <b>Members Only</b> in the <a class="event-invite-link" href="#invites">Invites section</a>.
+    </div>
+  </div>
+</div>
 
-        <h2>Invites</h2>
+<div class="modal-backdrop" id="backdrop">
+  <div class="modal-frame">
+    <span class="frame-corner tl"></span>
+    <span class="frame-corner tr"></span>
+    <span class="frame-corner bl"></span>
+    <span class="frame-corner br"></span>
+    <div class="modal-panel">
+      <div class="panel-header">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L20 5.5V11C20 16 16.7 20.2 12 22C7.3 20.2 4 16 4 11V5.5L12 2Z" stroke="#cdf2ff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        <span>Profile</span>
+      </div>
 
-        <div id="invite-list">
-            Loading...
+      <div class="panel-body">
+        <div class="panel-avatar">
+          <img id="pAvatar" src="" alt="">
+        </div>
+        <div class="panel-id">
+          <span class="panel-name" id="pName"></span>
+          <span class="panel-tag" id="pTag"></span>
         </div>
 
-    </section>
-
-    <script>
-        const loginSection = document.getElementById("login-section");
-        const memberSection = document.getElementById("member-section");
-
-        const userName = document.getElementById("user-name");
-        const profileArea = document.getElementById("profile-area");
-        const profileAvatar = document.getElementById("profile-avatar");
-        const sessionStatus = document.getElementById("session-status");
-        const logoutButton = document.getElementById("logout-button");
-
-        const loginForm = document.getElementById("login-form");
-        const loginMessage = document.getElementById("login-message");
-
-        const inviteForm = document.getElementById("invite-form");
-        const inviteMessage = document.getElementById("invite-message");
-
-        const inviteValue = document.getElementById("invite-value");
-
-        const specifyMembersButton =
-            document.getElementById("specify-members-button");
-
-        const memberMenu =
-            document.getElementById("member-menu");
-
-        const memberGrid =
-            document.getElementById("member-grid");
-
-        const selectAllMembers =
-            document.getElementById("select-all-members");
-
-        const selectedCount =
-            document.getElementById("selected-count");
-
-        const inviteList =
-            document.getElementById("invite-list");
-
-
-        /*
-         * The currently selected clan member IDs.
-         */
-        const selectedMemberIds = new Set();
-
-
-        /*
-         * Which visibility mode is currently selected.
-         *
-         * Public / Members only are radio buttons.
-         *
-         * Specific members is represented by the
-         * open member submenu and is therefore not
-         * another radio button.
-         */
-        function getAccessType() {
-
-            const selectedRadio =
-                document.querySelector(
-                    'input[name="access-type"]:checked'
-                );
-
-            if (selectedRadio) {
-                return selectedRadio.value;
-            }
-
-            return selectedMemberIds.size > 0
-                ? "specific_members"
-                : "public";
-        }
-
-
-        /*
-         * The member picker itself acts as the
-         * "specific_members" choice.
-         */
-        function activateSpecificMembers() {
-
-            document
-                .querySelectorAll('input[name="access-type"]')
-                .forEach(radio => {
-                    radio.checked = false;
-                });
-        }
-
-
-        /*
-         * Open/close the right-side member menu.
-         */
-        specifyMembersButton.addEventListener("click", async () => {
-
-            const isOpen = !memberMenu.hidden;
-
-            if (isOpen) {
-                closeMemberMenu();
-                return;
-            }
-
-            activateSpecificMembers();
-
-            memberMenu.hidden = false;
-
-            specifyMembersButton.setAttribute(
-                "aria-expanded",
-                "true"
-            );
-
-            await loadMembers();
-        });
-
-
-        function closeMemberMenu() {
-
-            memberMenu.hidden = true;
-
-            specifyMembersButton.setAttribute(
-                "aria-expanded",
-                "false"
-            );
-        }
-
-
-        /*
-         * Clicking Public or Members only closes
-         * the specific-member menu.
-         */
-        document
-            .querySelectorAll('input[name="access-type"]')
-            .forEach(radio => {
-
-                radio.addEventListener("change", () => {
-
-                    closeMemberMenu();
-
-                    /*
-                     * We intentionally keep previous
-                     * member selections in memory.
-                     *
-                     * If the user switches back to
-                     * Specify members, their selections
-                     * are still there.
-                     */
-                });
-            });
-
-
-        /*
-         * Close the member menu when clicking elsewhere.
-         */
-        document.addEventListener("click", event => {
-
-            if (
-                !memberMenu.contains(event.target) &&
-                !specifyMembersButton.contains(event.target)
-            ) {
-                closeMemberMenu();
-            }
-        });
-
-
-        /*
-         * Load the clan members.
-         */
-        let membersLoaded = false;
-
-        async function loadMembers() {
-
-            if (membersLoaded) {
-                updateSelectionUI();
-                return;
-            }
-
-            memberGrid.textContent = "Loading members...";
-
-            try {
-
-                const response = await fetch("/api/members", {
-                    method: "GET",
-                    credentials: "include"
-                });
-
-                if (!response.ok) {
-
-                    memberGrid.textContent =
-                        "Could not load members.";
-
-                    return;
-                }
-
-                const data = await response.json();
-
-                renderMembers(data.members || []);
-
-                membersLoaded = true;
-
-            } catch (error) {
-
-                console.error(error);
-
-                memberGrid.textContent =
-                    "Could not connect to the server.";
-            }
-        }
-
-
-        /*
-         * Render the 19-member, 3-column picker.
-         */
-        function renderMembers(members) {
-
-            memberGrid.innerHTML = "";
-
-            if (members.length === 0) {
-
-                const empty = document.createElement("div");
-
-                empty.className = "member-menu-empty";
-                empty.textContent = "No members found.";
-
-                memberGrid.appendChild(empty);
-
-                return;
-            }
-
-
-            for (const member of members) {
-
-                const card =
-                    document.createElement("div");
-
-                card.className = "member-card";
-
-                card.dataset.memberId = member.id;
-
-
-                const avatar =
-                    document.createElement("img");
-
-                avatar.className = "member-avatar";
-
-                avatar.src =
-                    `media/${member.rank}.png`;
-
-                avatar.alt =
-                    `${member.rank} avatar`;
-
-
-                const name =
-                    document.createElement("span");
-
-                name.className = "member-name";
-
-                name.textContent =
-                    member.display_name;
-
-
-                const rank =
-                    document.createElement("span");
-
-                rank.className = "member-rank";
-
-                rank.textContent =
-                    member.rank;
-
-
-                /*
-                 * This checkbox is intentionally
-                 * visually placed over the card's
-                 * top-right corner.
-                 */
-                const check =
-                    document.createElement("input");
-
-                check.type = "checkbox";
-                check.className = "member-check";
-
-                check.checked =
-                    selectedMemberIds.has(
-                        Number(member.id)
-                    );
-
-
-                /*
-                 * Clicking the checkbox itself should
-                 * not cause a second toggle.
-                 */
-                check.addEventListener(
-                    "click",
-                    event => {
-                        event.stopPropagation();
-                    }
-                );
-
-
-                check.addEventListener(
-                    "change",
-                    () => {
-
-                        setMemberSelected(
-                            Number(member.id),
-                            check.checked,
-                            card
-                        );
-                    }
-                );
-
-
-                card.appendChild(avatar);
-                card.appendChild(name);
-                card.appendChild(rank);
-                card.appendChild(check);
-
-
-                /*
-                 * Clicking anywhere on the card
-                 * toggles selection.
-                 */
-                card.addEventListener("click", () => {
-
-                    const id =
-                        Number(member.id);
-
-                    const selected =
-                        !selectedMemberIds.has(id);
-
-                    setMemberSelected(
-                        id,
-                        selected,
-                        card
-                    );
-
-                    check.checked = selected;
-                });
-
-
-                memberGrid.appendChild(card);
-            }
-
-            updateSelectionUI();
-        }
-
-
-        function setMemberSelected(
-            memberId,
-            selected,
-            card
-        ) {
-
-            if (selected) {
-                selectedMemberIds.add(memberId);
-            } else {
-                selectedMemberIds.delete(memberId);
-            }
-
-            card.classList.toggle(
-                "selected",
-                selected
-            );
-
-            updateSelectionUI();
-        }
-
-
-        /*
-         * Select all / deselect all.
-         */
-        selectAllMembers.addEventListener(
-            "change",
-            () => {
-
-                const cards =
-                    memberGrid.querySelectorAll(
-                        ".member-card"
-                    );
-
-                for (const card of cards) {
-
-                    const id =
-                        Number(card.dataset.memberId);
-
-                    const checkbox =
-                        card.querySelector(
-                            ".member-check"
-                        );
-
-                    const selected =
-                        selectAllMembers.checked;
-
-                    if (selected) {
-                        selectedMemberIds.add(id);
-                    } else {
-                        selectedMemberIds.delete(id);
-                    }
-
-                    card.classList.toggle(
-                        "selected",
-                        selected
-                    );
-
-                    checkbox.checked = selected;
-                }
-
-                updateSelectionUI();
-            }
-        );
-
-
-        function updateSelectionUI() {
-
-            const count =
-                selectedMemberIds.size;
-
-            selectedCount.textContent =
-                `${count} selected`;
-
-
-            if (count > 0) {
-
-                specifyMembersButton.textContent =
-                    `Specify members (${count})`;
-
-            } else {
-
-                specifyMembersButton.textContent =
-                    "Specify members";
-            }
-
-
-            const cards =
-                memberGrid.querySelectorAll(
-                    ".member-card"
-                );
-
-            if (cards.length > 0) {
-
-                selectAllMembers.checked =
-                    count === cards.length;
-
-                selectAllMembers.indeterminate =
-                    count > 0 &&
-                    count < cards.length;
-
-            } else {
-
-                selectAllMembers.checked = false;
-                selectAllMembers.indeterminate = false;
-            }
-        }
-
-
-        /*
-         * Check whether the user is already logged in.
-         *
-         * The backend identifies the user through
-         * its HTTP-only session cookie.
-         */
-        async function checkLogin() {
-
-            try {
-
-                const response = await fetch("/api/me", {
-                    method: "GET",
-                    credentials: "include"
-                });
-
-                if (!response.ok) {
-
-                    showLoggedOut();
-                    return;
-                }
-
-                const data =
-                    await response.json();
-
-                if (!data.authenticated) {
-
-                    showLoggedOut();
-                    return;
-                }
-
-                showLoggedIn(data.member);
-
-            } catch (error) {
-
-                console.error(error);
-
-                showLoggedOut();
-            }
-        }
-
-
-        /*
-         * Login.
-         */
-        loginForm.addEventListener(
-            "submit",
-            async event => {
-
-                event.preventDefault();
-
-                loginMessage.textContent =
-                    "Logging in...";
-
-
-                const username =
-                    document
-                        .getElementById("username")
-                        .value
-                        .trim();
-
-                const password =
-                    document
-                        .getElementById("password")
-                        .value;
-
-
-                try {
-
-                    const response =
-                        await fetch("/api/login", {
-
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            credentials: "include",
-
-                            body: JSON.stringify({
-                                username,
-                                password
-                            })
-                        });
-
-
-                    const data =
-                        await response.json();
-
-
-                    if (!response.ok) {
-
-                        loginMessage.textContent =
-                            data.error ||
-                            "Login failed.";
-
-                        return;
-                    }
-
-
-                    loginForm.reset();
-
-                    loginMessage.textContent = "";
-
-                    showLoggedIn(data.member);
-
-                } catch (error) {
-
-                    console.error(error);
-
-                    loginMessage.textContent =
-                        "Could not connect to the server.";
-                }
-            }
-        );
-
-
-        /*
-         * Logout.
-         */
-        logoutButton.addEventListener(
-            "click",
-            async () => {
-
-                try {
-
-                    await fetch("/api/logout", {
-                        method: "POST",
-                        credentials: "include"
-                    });
-
-                } catch (error) {
-
-                    console.error(error);
-                }
-
-                showLoggedOut();
-            }
-        );
-
-
-        /*
-         * Send invite.
-         */
-        inviteForm.addEventListener(
-            "submit",
-            async event => {
-
-                event.preventDefault();
-
-                inviteMessage.textContent =
-                    "Sending...";
-
-
-                const value =
-                    inviteValue.value.trim();
-
-
-                let type =
-                    getAccessType();
-
-
-                /*
-                 * If the user has selected members,
-                 * the access type becomes specific_members.
-                 */
-                if (selectedMemberIds.size > 0) {
-                    type = "specific_members";
-                }
-
-
-                let memberIds = [];
-
-
-                if (type === "specific_members") {
-
-                    memberIds =
-                        [...selectedMemberIds];
-
-                    if (memberIds.length === 0) {
-
-                        inviteMessage.textContent =
-                            "Select at least one member.";
-
-                        return;
-                    }
-                }
-
-
-                try {
-
-                    const response =
-                        await fetch("/api/invites", {
-
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            credentials: "include",
-
-                            body: JSON.stringify({
-                                invite_value: value,
-                                access_type: type,
-                                member_ids: memberIds
-                            })
-                        });
-
-
-                    const data =
-                        await response.json();
-
-
-                    if (!response.ok) {
-
-                        inviteMessage.textContent =
-                            data.error ||
-                            "Could not send invite.";
-
-                        return;
-                    }
-
-
-                    inviteForm.reset();
-
-                    selectedMemberIds.clear();
-
-                    closeMemberMenu();
-
-                    renderMembers(
-                        await getMembersForReset()
-                    );
-
-                    inviteMessage.textContent =
-                        "Invite sent.";
-
-                    loadInvites();
-
-                } catch (error) {
-
-                    console.error(error);
-
-                    inviteMessage.textContent =
-                        "Could not connect to the server.";
-                }
-            }
-        );
-
-
-        /*
-         * Refresh the currently loaded member cards
-         * after the form is reset.
-         */
-        async function getMembersForReset() {
-
-            try {
-
-                const response =
-                    await fetch("/api/members", {
-                        method: "GET",
-                        credentials: "include"
-                    });
-
-                if (!response.ok) {
-                    return [];
-                }
-
-                const data =
-                    await response.json();
-
-                return data.members || [];
-
-            } catch (error) {
-
-                console.error(error);
-
-                return [];
-            }
-        }
-
-
-        /*
-         * Load visible invites.
-         */
-        async function loadInvites() {
-
-            inviteList.textContent =
-                "Loading...";
-
-            try {
-
-                const response =
-                    await fetch("/api/invites", {
-
-                        method: "GET",
-                        credentials: "include"
-                    });
-
-
-                if (!response.ok) {
-
-                    inviteList.textContent =
-                        "Could not load invites.";
-
-                    return;
-                }
-
-
-                const data =
-                    await response.json();
-
-
-                const invites =
-                    data.invites || [];
-
-                let members = [];
-
-                try {
-                    const membersResponse =
-                        await fetch("/api/members", {
-                            method: "GET",
-                            credentials: "include"
-                        });
-
-                    if (membersResponse.ok) {
-                        const membersData =
-                            await membersResponse.json();
-
-                        members =
-                            membersData.members || [];
-                    }
-                } catch (memberError) {
-                    console.error(
-                        "Could not load member ranks:",
-                        memberError
-                    );
-                }
-
-                const rankByName =
-                    new Map(
-                        members.map(member => [
-                            member.display_name,
-                            member.rank
-                        ])
-                    );
-
-                invites.forEach(invite => {
-                    invite.rank =
-                        rankByName.get(
-                            invite.display_name
-                        ) || "recruit";
-                });
-
-                renderInvites(invites);
-
-            } catch (error) {
-
-                console.error(error);
-
-                inviteList.textContent =
-                    "Could not connect to the server.";
-            }
-        }
-
-
-        /*
-         * Render invites.
-         */
-        function renderInvites(invites) {
-
-            inviteList.innerHTML = "";
-
-            if (invites.length === 0) {
-
-                inviteList.textContent =
-                    "No invites yet.";
-
-                return;
-            }
-
-
-            /*
-             * API returns newest first.
-             * Reverse it for chat-style rendering so
-             * the newest invite is at the bottom.
-             */
-            const chronologicalInvites =
-                [...invites].reverse();
-
-
-            for (const invite of chronologicalInvites) {
-
-                const container =
-                    document.createElement("div");
-
-                container.className =
-                    "invite-item";
-
-
-                const meta =
-                    document.createElement("div");
-
-                meta.className =
-                    "invite-item-meta";
-
-
-                const avatar =
-                    document.createElement("img");
-
-                avatar.className =
-                    "invite-sender-avatar";
-
-                avatar.src =
-                    `media/${invite.rank || "recruit"}.png`;
-
-                avatar.alt =
-                    "Member avatar";
-
-
-                const name =
-                    document.createElement("strong");
-
-                name.textContent =
-                    invite.display_name;
-
-
-                meta.appendChild(avatar);
-                meta.appendChild(name);
-
-
-                const value =
-                    document.createElement("div");
-
-                value.textContent =
-                    invite.invite_value;
-
-
-                const actions =
-                    document.createElement("div");
-
-                actions.className =
-                    "invite-item-actions";
-
-
-                const copyButton =
-                    document.createElement("button");
-
-                copyButton.textContent =
-                    "Copy ID";
-
-
-                copyButton.addEventListener(
-                    "click",
-                    async () => {
-
-                        await navigator.clipboard
-                            .writeText(
-                                invite.invite_value
-                            );
-
-                        copyButton.textContent =
-                            "Copied";
-
-
-                        setTimeout(() => {
-
-                            copyButton.textContent =
-                                "Copy ID";
-
-                        }, 1000);
-                    }
-                );
-
-
-                const joinButton =
-                    document.createElement("button");
-
-                joinButton.textContent =
-                    "Join";
-
-
-                joinButton.addEventListener(
-                    "click",
-                    () => {
-
-                        window.open(
-                            invite.join_url,
-                            "_blank",
-                            "noopener,noreferrer"
-                        );
-                    }
-                );
-
-
-                actions.appendChild(copyButton);
-                actions.appendChild(joinButton);
-
-                container.appendChild(meta);
-                container.appendChild(value);
-                container.appendChild(actions);
-
-                inviteList.appendChild(container);
-            }
-
-
-            /*
-             * Keep the newest invite visible at the bottom.
-             */
-            inviteList.scrollTop =
-                inviteList.scrollHeight;
-        }
-
-
-        /*
-         * Logged-in state.
-         */
-        function showLoggedIn(member) {
-
-            userName.textContent =
-                "Logged in as: " +
-                member.display_name;
-
-            logoutButton.hidden = false;
-
-            loginSection.hidden = true;
-            memberSection.hidden = false;
-
-            loadInvites();
-        }
-
-
-        /*
-         * Logged-out state.
-         */
-        function showLoggedOut() {
-
-            userName.textContent =
-                "Not logged in";
-
-            logoutButton.hidden = true;
-
-            loginSection.hidden = false;
-            memberSection.hidden = true;
-
-            inviteList.innerHTML = "";
-
-            selectedMemberIds.clear();
-
-            closeMemberMenu();
-        }
-
-
-        /*
-         * Run when the page opens.
-         */
-        checkLogin();
-
-    </script>
-
+        <div class="panel-stats">
+          <div class="stat"><span>K/D</span><b id="pKD"></b></div>
+          <div class="stat"><span>Main Weapon</span><b id="pWeapon"></b></div>
+          <div class="stat"><span>Rank</span><b id="pRank"></b></div>
+          <div class="stat"><span>In Game Time</span><b id="pTime"></b></div>
+          <div class="stat"><span>Discord</span><b id="pDiscord"></b></div>
+        </div>
+      </div>
+
+      <div class="panel-footer">
+        <button class="pbtn close" id="btnClose">Close</button>
+        <button class="pbtn more" id="btnMore">Read More</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="rulesBackdrop">
+  <div class="modal-frame rules-frame">
+    <span class="frame-corner tl"></span>
+    <span class="frame-corner tr"></span>
+    <span class="frame-corner bl"></span>
+    <span class="frame-corner br"></span>
+    <div class="modal-panel">
+      <div class="panel-header">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L20 5.5V11C20 16 16.7 20.2 12 22C7.3 20.2 4 16 4 11V5.5L12 2Z" stroke="#cdf2ff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        <span>Rules</span>
+      </div>
+
+      <div class="panel-body rules-body">
+        <ol class="rules-list">
+          <li class="rule-item"><span class="rule-index">1</span><span class="rule-text">Sample Rule</span></li>
+          <li class="rule-item"><span class="rule-index">2</span><span class="rule-text">Sample Rule</span></li>
+          <li class="rule-item"><span class="rule-index">3</span><span class="rule-text">Sample Rule</span></li>
+          <li class="rule-item"><span class="rule-index">4</span><span class="rule-text">Sample Rule</span></li>
+          <li class="rule-item"><span class="rule-index">5</span><span class="rule-text">Sample Rule</span></li>
+        </ol>
+      </div>
+
+      <div class="panel-footer">
+        <button class="pbtn close" id="rulesClose">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- data ----------
+  // NOTE: img paths point at your own /media folder (media/owner.png, media/member.png).
+  // Stats below for the two named members and the owner are placeholders — swap in real values.
+
+  const MEMBERS = [
+    {
+      name:'A$$A$$iN', tag:'Owner', img:'media/owner.png', owner:true,
+      kd:'3.42', weapon:'Intervention', rank:'Immortal', time:'1,240 hrs', discord:'@assassin'
+    },
+    {
+      name:'Legendary24', tag:'Captain', img:'media/captain.png',
+      kd:'2.14', weapon:'AK-47', rank:'Diamond II', time:'482 hrs', discord:'@legendary24'
+    },
+    {
+      name:'key_p1ayer', tag:'Sergeant', img:'media/sergeant.png',
+      kd:'1.87', weapon:'M4A1', rank:'Platinum I', time:'310 hrs', discord:'@key_p1ayer'
+    }
+  ];
+  for(let i=0;i<16;i++){
+    MEMBERS.push({ tag:'Recruit', img:'media/recruit.png', openSlot:true });
+  }
+
+  // the account currently signed in — shown top-right and used as the invite sender
+  const CURRENT_USER = MEMBERS[0];
+
+  // ---------- fallback avatar (used only if media/*.png fails to load) ----------
+  function fallbackAvatar(){
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+      + '<rect width="100" height="100" fill="#0d1620"/>'
+      + '<circle cx="50" cy="38" r="18" fill="#213640"/>'
+      + '<path d="M14 96c2-24 17-38 36-38s34 14 36 38" fill="#213640"/>'
+      + '</svg>';
+    return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  }
+
+  function randomHandle(){
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let s = '';
+    for(let i=0;i<7;i++) s += chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  }
+
+  // ---------- render roster ----------
+  const roster = document.getElementById('roster');
+
+  const ownerRow = document.createElement('div');
+  ownerRow.className = 'row owner-row';
+  ownerRow.appendChild(buildCard(MEMBERS[0]));
+  roster.appendChild(ownerRow);
+
+  const rest = MEMBERS.slice(1);
+  for(let r=0;r<3;r++){
+    const row = document.createElement('div');
+    row.className = 'row member-row';
+    rest.slice(r*6,(r*6)+6).forEach(m => row.appendChild(buildCard(m)));
+    roster.appendChild(row);
+  }
+
+  function buildCard(m){
+    const card = document.createElement('div');
+    card.className = 'member-card' + (m.owner ? ' owner' : '') + (m.openSlot ? ' open-slot' : '');
+
+    ['tl','tr','bl','br'].forEach(pos => {
+      const c = document.createElement('span');
+      c.className = 'corner ' + pos;
+      card.appendChild(c);
+    });
+
+    const avatarWrap = document.createElement('div');
+    avatarWrap.className = 'avatar-wrap';
+    const img = document.createElement('img');
+    img.src = m.img;
+    img.alt = '';
+    img.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
+    avatarWrap.appendChild(img);
+
+    if(m.owner){
+      const crown = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      crown.setAttribute('class','owner-crown');
+      crown.setAttribute('viewBox','0 0 24 24');
+      crown.innerHTML = '<path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8z" fill="#cdf2ff" opacity="0.9"/>';
+      avatarWrap.appendChild(crown);
+    }
+    card.appendChild(avatarWrap);
+
+    const name = document.createElement('div');
+    name.className = 'card-name' + (m.openSlot ? ' blurred' : '');
+    name.textContent = m.openSlot ? randomHandle() : m.name;
+    card.appendChild(name);
+
+    const tag = document.createElement('div');
+    tag.className = 'card-tag';
+    tag.textContent = m.tag;
+    card.appendChild(tag);
+
+    if(!m.openSlot){
+      card.addEventListener('click', () => openProfile(m));
+    }
+    return card;
+  }
+
+  // ---------- modal ----------
+  const backdrop = document.getElementById('backdrop');
+  const pAvatar = document.getElementById('pAvatar');
+  const pName = document.getElementById('pName');
+  const pTag = document.getElementById('pTag');
+  const pKD = document.getElementById('pKD');
+  const pWeapon = document.getElementById('pWeapon');
+  const pRank = document.getElementById('pRank');
+  const pTime = document.getElementById('pTime');
+  const pDiscord = document.getElementById('pDiscord');
+
+  let closeTimer = null;
+
+  function openProfile(m){
+    pAvatar.src = m.img;
+    pAvatar.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
+    pName.textContent = m.name;
+    pTag.textContent = m.tag;
+    pKD.textContent = m.kd;
+    pWeapon.textContent = m.weapon;
+    pRank.textContent = m.rank;
+    pTime.textContent = m.time;
+    pDiscord.textContent = m.discord;
+
+    clearTimeout(closeTimer);
+    backdrop.classList.remove('closing');
+    backdrop.classList.remove('open');
+    void backdrop.offsetWidth; // force reflow so the corner keyframes restart from center every time
+    backdrop.classList.add('open');
+    document.body.classList.add('no-scroll');
+  }
+
+  function closeProfile(){
+    if(!backdrop.classList.contains('open')) return;
+    backdrop.classList.add('closing');
+    backdrop.classList.remove('open');
+    document.body.classList.remove('no-scroll');
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => backdrop.classList.remove('closing'), 400);
+  }
+
+  document.getElementById('btnClose').addEventListener('click', closeProfile);
+  document.getElementById('btnMore').addEventListener('click', closeProfile);
+  backdrop.addEventListener('click', e => { if(e.target === backdrop) closeProfile(); });
+
+  // ---------- site header: account avatar / logout ----------
+  const accountWrap = document.getElementById('accountWrap');
+  const accountAvatarBtn = document.getElementById('accountAvatarBtn');
+  const accountAvatarImg = document.getElementById('accountAvatarImg');
+  const accountMenu = document.getElementById('accountMenu');
+  const accountMenuUser = document.getElementById('accountMenuUser');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  accountAvatarImg.src = CURRENT_USER.img;
+  accountAvatarImg.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
+  accountMenuUser.innerHTML = '';
+  const accountMenuName = document.createElement('span');
+  accountMenuName.textContent = CURRENT_USER.name;
+  const accountMenuTag = document.createElement('span');
+  accountMenuTag.className = 'tag';
+  accountMenuTag.textContent = CURRENT_USER.tag;
+  accountMenuUser.appendChild(accountMenuName);
+  accountMenuUser.appendChild(accountMenuTag);
+
+  function closeAccountMenu(){ accountWrap.classList.remove('open'); }
+
+  accountAvatarBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    accountWrap.classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    if(!accountWrap.contains(e.target)) closeAccountMenu();
+  });
+  logoutBtn.addEventListener('click', () => {
+    accountMenu.innerHTML = '<div class="account-menu-loggedout">Logged out</div>';
+    setTimeout(closeAccountMenu, 900);
+  });
+
+  // ---------- rules floating panel ----------
+  const rulesBackdrop = document.getElementById('rulesBackdrop');
+  let rulesCloseTimer = null;
+
+  function openRules(){
+    clearTimeout(rulesCloseTimer);
+    rulesBackdrop.classList.remove('closing');
+    rulesBackdrop.classList.remove('open');
+    void rulesBackdrop.offsetWidth; // restart corner keyframes from center every time
+    rulesBackdrop.classList.add('open');
+    document.body.classList.add('no-scroll');
+  }
+  function closeRules(){
+    if(!rulesBackdrop.classList.contains('open')) return;
+    rulesBackdrop.classList.add('closing');
+    rulesBackdrop.classList.remove('open');
+    document.body.classList.remove('no-scroll');
+    clearTimeout(rulesCloseTimer);
+    rulesCloseTimer = setTimeout(() => rulesBackdrop.classList.remove('closing'), 400);
+  }
+
+  document.getElementById('navRules').addEventListener('click', openRules);
+  document.getElementById('rulesClose').addEventListener('click', closeRules);
+  rulesBackdrop.addEventListener('click', e => { if(e.target === rulesBackdrop) closeRules(); });
+
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      closeProfile();
+      closeRules();
+      closeAccountMenu();
+      closeVisDropdown();
+    }
+  });
+
+  // ---------- invites ----------
+  const inviteInput = document.getElementById('inviteInput');
+  const invitesList = document.getElementById('invitesList');
+  const sendBtn = document.getElementById('sendInviteBtn');
+
+  function addInvite(link, senderName, senderTag){
+    const emptyEl = document.getElementById('invitesEmpty');
+    if(emptyEl) emptyEl.remove();
+
+    const item = document.createElement('div');
+    item.className = 'invite-item';
+
+    if(senderName){
+      const sender = document.createElement('span');
+      sender.className = 'invite-item-sender';
+
+      const nameEl = document.createElement('b');
+      nameEl.textContent = senderName;
+      sender.appendChild(nameEl);
+
+      if(senderTag){
+        const tagEl = document.createElement('span');
+        tagEl.className = 'invite-item-sender-tag';
+        tagEl.textContent = senderTag;
+        sender.appendChild(tagEl);
+      }
+
+      item.appendChild(sender);
+    }
+
+    const icon = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    icon.setAttribute('class','invite-item-icon');
+    icon.setAttribute('viewBox','0 0 24 24');
+    icon.setAttribute('width','14');
+    icon.setAttribute('height','14');
+    icon.innerHTML = '<path d="M9 6.5L15 12l-6 5.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+
+    const a = document.createElement('a');
+    a.href = link;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.title = link;
+    a.textContent = link;
+
+    item.appendChild(icon);
+    item.appendChild(a);
+    invitesList.appendChild(item);
+    invitesList.scrollTop = invitesList.scrollHeight; // newest stays in view at the bottom
+  }
+
+  function handleSend(){
+    const val = inviteInput.value.trim();
+    if(!val){
+      sendBtn.blur();
+      return;
+    }
+    addInvite(val, CURRENT_USER.name, CURRENT_USER.tag);
+    inviteInput.value = '';
+  }
+
+  sendBtn.addEventListener('click', handleSend);
+  inviteInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      sendBtn.focus();
+      handleSend();
+    }
+  });
+
+  // ---------- visibility dropdown (Public / Members Only / Specify) ----------
+  const visSelect = document.getElementById('visSelect');
+  const visTrigger = document.getElementById('visTrigger');
+  const visLabel = document.getElementById('visLabel');
+  const visDropdown = document.getElementById('visDropdown');
+  const visOptions = Array.from(visDropdown.querySelectorAll('.vis-option:not(.vis-option-specify)'));
+  const visOptionSpecify = document.getElementById('visOptionSpecify');
+
+  const visSpecifyToggle = document.getElementById('visSpecifyToggle');
+  const visSpecifyList = document.getElementById('visSpecifyList');
+  const specifySelectAllChk = document.getElementById('specifySelectAllChk');
+
+  // real clan members only — the greyed-out open slots aren't people you can address
+  const realMembers = MEMBERS.filter(m => !m.openSlot);
+  realMembers.forEach((m, i) => { m._id = i; });
+
+  let visibilityMode = 'public'; // 'public' | 'members' | 'specify'
+  let specifiedIds = new Set();
+
+  function setVisOptionActive(value){
+    visOptions.forEach(o => o.classList.toggle('active', o.getAttribute('data-value') === value));
+    visOptionSpecify.classList.toggle('active', value === 'specify');
+  }
+
+  function setVisLabel(){
+    if(visibilityMode === 'public'){ visLabel.textContent = 'Public'; return; }
+    if(visibilityMode === 'members'){ visLabel.textContent = 'Members Only'; return; }
+    visLabel.textContent = specifiedIds.size ? `Specify (${specifiedIds.size})` : 'Specify';
+  }
+
+  function openVisDropdown(){ visSelect.classList.add('open'); }
+  function closeVisDropdown(){
+    visSelect.classList.remove('open');
+    closeSpecifyFlyout();
+  }
+
+  visTrigger.addEventListener('click', e => {
+    e.stopPropagation();
+    visSelect.classList.toggle('open');
+    if(!visSelect.classList.contains('open')) closeSpecifyFlyout();
+  });
+  document.addEventListener('click', e => {
+    if(!visSelect.contains(e.target)) closeVisDropdown();
+  });
+
+  visOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+      const val = opt.getAttribute('data-value');
+      visibilityMode = val;
+      setVisOptionActive(val);
+      setVisLabel();
+      closeVisDropdown();
+    });
+  });
+
+  // ---------- specify: small dropdown attached to the "Specify" row ----------
+  function syncSpecifySelectAllState(){
+    const total = realMembers.length;
+    const checked = specifiedIds.size;
+    specifySelectAllChk.checked = total > 0 && checked === total;
+    specifySelectAllChk.indeterminate = checked > 0 && checked < total;
+  }
+
+  function buildSpecifyList(){
+    visSpecifyList.innerHTML = '';
+    realMembers.forEach(m => {
+      const row = document.createElement('label');
+      row.className = 'vis-specify-row';
+
+      const cbox = document.createElement('label');
+      cbox.className = 'vis-checkbox';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = specifiedIds.has(m._id);
+      input.addEventListener('change', () => {
+        if(input.checked) specifiedIds.add(m._id);
+        else specifiedIds.delete(m._id);
+        visibilityMode = 'specify';
+        setVisOptionActive('specify');
+        setVisLabel();
+        syncSpecifySelectAllState();
+      });
+      const box = document.createElement('span');
+      box.className = 'vis-checkbox-box';
+      cbox.appendChild(input);
+      cbox.appendChild(box);
+      row.appendChild(cbox);
+
+      const name = document.createElement('span');
+      name.className = 'vis-specify-name';
+      name.textContent = m.name;
+      row.appendChild(name);
+
+      const tag = document.createElement('span');
+      tag.className = 'vis-specify-tag';
+      tag.textContent = m.tag;
+      row.appendChild(tag);
+
+      // clicking anywhere on the row (outside the checkbox) also toggles it
+      row.addEventListener('click', e => {
+        if(cbox.contains(e.target)) return;
+        e.preventDefault();
+        input.checked = !input.checked;
+        input.dispatchEvent(new Event('change'));
+      });
+
+      visSpecifyList.appendChild(row);
+    });
+    syncSpecifySelectAllState();
+  }
+
+  specifySelectAllChk.addEventListener('click', e => e.stopPropagation());
+  specifySelectAllChk.addEventListener('change', () => {
+    if(specifySelectAllChk.checked) realMembers.forEach(m => specifiedIds.add(m._id));
+    else specifiedIds.clear();
+    visibilityMode = 'specify';
+    setVisOptionActive('specify');
+    setVisLabel();
+    buildSpecifyList();
+  });
+
+  function openSpecifyFlyout(){
+    buildSpecifyList();
+    visSelect.classList.add('specify-open');
+  }
+  function closeSpecifyFlyout(){
+    visSelect.classList.remove('specify-open');
+  }
+
+  visSpecifyToggle.addEventListener('click', e => {
+    e.stopPropagation();
+    if(visSelect.classList.contains('specify-open')) closeSpecifyFlyout();
+    else openSpecifyFlyout();
+  });
+
+  // after the initial letter reveal has played once, stop treating hover-out as a re-trigger
+  setTimeout(() => sendBtn.classList.add('letters-settled'), 950);
+
+  // ---------- ambient snow ----------
+  const snowEl = document.getElementById('snow');
+  for(let i=0;i<36;i++){
+    const f = document.createElement('span');
+    f.className = 'flake';
+    const size = 2 + Math.random()*3;
+    f.style.width = size + 'px';
+    f.style.height = size + 'px';
+    f.style.left = (Math.random()*100) + 'vw';
+    f.style.animationDuration = (10 + Math.random()*14) + 's';
+    f.style.animationDelay = (Math.random()*14) + 's';
+    snowEl.appendChild(f);
+  }
+</script>
 </body>
 </html>
