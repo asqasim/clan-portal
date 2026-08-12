@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rime Wardens</title>
+
+    <style>
+        .visibility-options {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin: 10px 0;
+        }
+        #user-section {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            min-height: 58px;
+        }
+
+        #profile-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #profile-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        #session-status {
+            color: #666;
+        }
+
+        .invite-compose-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #invite-value {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .visibility-options {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        #invite-form > .invite-compose-row > button[type="submit"] {
+            flex-shrink: 0;
+        }
+
+        #invite-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 520px;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+
+        .invite-item {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+        }
+
+        .invite-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .invite-sender-avatar {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+            border-radius: 50%;
+        }
+
+        .invite-item-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 7px;
+        }
+
+        @media (max-width: 800px) {
+            .invite-compose-row {
+                flex-wrap: wrap;
+            }
+
+            #invite-value {
+                flex-basis: 100%;
+            }
+        }
+
+
+        .specify-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #specify-members-button {
+            cursor: pointer;
+        }
+
+        .member-menu {
+            position: absolute;
+            left: calc(100% + 8px);
+            top: 0;
+            z-index: 1000;
+
+            width: 620px;
+            max-height: 430px;
+            overflow-y: auto;
+
+            padding: 12px;
+            border: 1px solid #ccc;
+            background: #fff;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        .member-menu[hidden] {
+            display: none;
+        }
+
+        .member-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #select-all-members {
+            cursor: pointer;
+        }
+
+        #selected-count {
+            font-size: 0.9rem;
+        }
+
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .member-card {
+            position: relative;
+            min-height: 115px;
+            padding: 12px 8px 8px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            user-select: none;
+            text-align: center;
+        }
+
+        .member-card:hover {
+            border-color: #888;
+        }
+
+        .member-card.selected {
+            border-color: #111;
+        }
+
+        .member-avatar {
+            display: block;
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 6px;
+            object-fit: contain;
+        }
+
+        .member-name {
+            display: block;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .member-rank {
+            display: block;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 3px;
+            text-transform: capitalize;
+        }
+
+        .member-check {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            cursor: pointer;
+            accent-color: #111;
+        }
+
+        .member-card:not(.selected) .member-check {
+            display: none;
+        }
+
+        .member-menu-empty {
+            grid-column: 1 / -1;
+            padding: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 750px) {
+            .member-menu {
+                left: 0;
+                top: calc(100% + 8px);
+                width: min(620px, calc(100vw - 30px));
+            }
+
+            .member-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Rime Wardens [R1ME]</h1>
+
+    <div id="user-section">
+        <div id="profile-area" hidden>
+            <div id="profile-info">
+                <img id="profile-avatar" class="profile-avatar" src="" alt="Member avatar">
+                <span id="user-name"></span>
+            </div>
+            <button id="logout-button">Logout</button>
+        </div>
+        <span id="session-status">Checking session...</span>
+    </div>
+
+    <hr>
+
+    <section id="login-section" hidden>
+        <h2>Login</h2>
+
+        <form id="login-form">
+            <input
+                id="username"
+                type="text"
+                placeholder="Username"
+                required
+            >
+
+            <input
+                id="password"
+                type="password"
+                placeholder="Password"
+                required
+            >
+
+            <button type="submit">Login</button>
+        </form>
+
+        <p id="login-message"></p>
+    </section>
+
+    <section id="member-section">
+
+        <h2>Invites</h2>
+
+        <div id="invite-list">
+            Loading...
+        </div>
+
+        <hr>
+
+        <h2>Send Invite</h2>
+        <form id="invite-form">
+            <div class="invite-compose-row">
+
+                <input
+                    id="invite-value"
+                    type="text"
+                    placeholder="Cryzen invite URL or ID"
+                    required
+                >
+
+                <div class="visibility-options">
+                <label>
+                    <input
+                        type="radio"
+                        name="access-type"
+                        value="public"
+                        checked
+                    >
+                    Public
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="access-type"
+                        value="members_only"
+                    >
+                    Members only
+                </label>
+
+                <div class="specify-wrapper">
+                    <button
+                        id="specify-members-button"
+                        type="button"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                    >
+                        Specify members
+                    </button>
+
+                    <div
+                        id="member-menu"
+                        class="member-menu"
+                        hidden
+                    >
+                        <div class="member-menu-header">
+                            <label>
+                                <input
+                                    id="select-all-members"
+                                    type="checkbox"
+                                >
+                                Select all
+                            </label>
+
+                            <span id="selected-count">
+                                0 selected
+                            </span>
+                        </div>
+
+                        <div id="member-grid" class="member-grid">
+                            Loading members...
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <button type="submit">Send Invite</button>
+            </div>
+        </form>
+
+        <p id="invite-message"></p>
+
+
+
+        <h2>Invites</h2>
+
+        <div id="invite-list">
+            Loading...
+        </div>
+
+    </section>
+
+    <script>
+        const loginSection = document.getElementById("login-section");
+        const memberSection = document.getElementById("member-section");
+
+        const userName = document.getElementById("user-name");
+        const profileArea = document.getElementById("profile-area");
+        const profileAvatar = document.getElementById("profile-avatar");
+        const sessionStatus = document.getElementById("session-status");
+        const logoutButton = document.getElementById("logout-button");
+
+        const loginForm = document.getElementById("login-form");
+        const loginMessage = document.getElementById("login-message");
+
+        const inviteForm = document.getElementById("invite-form");
+        const inviteMessage = document.getElementById("invite-message");
+
+        const inviteValue = document.getElementById("invite-value");
+
+        const specifyMembersButton =
+            document.getElementById("specify-members-button");
+
+        const memberMenu =
+            document.getElementById("member-menu");
+
+        const memberGrid =
+            document.getElementById("member-grid");
+
+        const selectAllMembers =
+            document.getElementById("select-all-members");
+
+        const selectedCount =
+            document.getElementById("selected-count");
+
+        const inviteList =
+            document.getElementById("invite-list");
+
+
+        /*
+         * The currently selected clan member IDs.
+         */
+        const selectedMemberIds = new Set();
+
+
+        /*
+         * Which visibility mode is currently selected.
+         *
+         * Public / Members only are radio buttons.
+         *
+         * Specific members is represented by the
+         * open member submenu and is therefore not
+         * another radio button.
+         */
+        function getAccessType() {
+
+            const selectedRadio =
+                document.querySelector(
+                    'input[name="access-type"]:checked'
+                );
+
+            if (selectedRadio) {
+                return selectedRadio.value;
+            }
+
+            return selectedMemberIds.size > 0
+                ? "specific_members"
+                : "public";
+        }
+
+
+        /*
+         * The member picker itself acts as the
+         * "specific_members" choice.
+         */
+        function activateSpecificMembers() {
+
+            document
+                .querySelectorAll('input[name="access-type"]')
+                .forEach(radio => {
+                    radio.checked = false;
+                });
+        }
+
+
+        /*
+         * Open/close the right-side member menu.
+         */
+        specifyMembersButton.addEventListener("click", async () => {
+
+            const isOpen = !memberMenu.hidden;
+
+            if (isOpen) {
+                closeMemberMenu();
+                return;
+            }
+
+            activateSpecificMembers();
+
+            memberMenu.hidden = false;
+
+            specifyMembersButton.setAttribute(
+                "aria-expanded",
+                "true"
+            );
+
+            await loadMembers();
+        });
+
+
+        function closeMemberMenu() {
+
+            memberMenu.hidden = true;
+
+            specifyMembersButton.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+        }
+
+
+        /*
+         * Clicking Public or Members only closes
+         * the specific-member menu.
+         */
+        document
+            .querySelectorAll('input[name="access-type"]')
+            .forEach(radio => {
+
+                radio.addEventListener("change", () => {
+
+                    closeMemberMenu();
+
+                    /*
+                     * We intentionally keep previous
+                     * member selections in memory.
+                     *
+                     * If the user switches back to
+                     * Specify members, their selections
+                     * are still there.
+                     */
+                });
+            });
+
+
+        /*
+         * Close the member menu when clicking elsewhere.
+         */
+        document.addEventListener("click", event => {
+
+            if (
+                !memberMenu.contains(event.target) &&
+                !specifyMembersButton.contains(event.target)
+            ) {
+                closeMemberMenu();
+            }
+        });
+
+
+        /*
+         * Load the clan members.
+         */
+        let membersLoaded = false;
+
+        async function loadMembers() {
+
+            if (membersLoaded) {
+                updateSelectionUI();
+                return;
+            }
+
+            memberGrid.textContent = "Loading members...";
+
+            try {
+
+                const response = await fetch("/api/members", {
+                    method: "GET",
+                    credentials: "include"
+                });
+
+                if (!response.ok) {
+
+                    memberGrid.textContent =
+                        "Could not load members.";
+
+                    return;
+                }
+
+                const data = await response.json();
+
+                renderMembers(data.members || []);
+
+                membersLoaded = true;
+
+            } catch (error) {
+
+                console.error(error);
+
+                memberGrid.textContent =
+                    "Could not connect to the server.";
+            }
+        }
+
+
+        /*
+         * Render the 19-member, 3-column picker.
+         */
+        function renderMembers(members) {
+
+            memberGrid.innerHTML = "";
+
+            if (members.length === 0) {
+
+                const empty = document.createElement("div");
+
+                empty.className = "member-menu-empty";
+                empty.textContent = "No members found.";
+
+                memberGrid.appendChild(empty);
+
+                return;
+            }
+
+
+            for (const member of members) {
+
+                const card =
+                    document.createElement("div");
+
+                card.className = "member-card";
+
+                card.dataset.memberId = member.id;
+
+
+                const avatar =
+                    document.createElement("img");
+
+                avatar.className = "member-avatar";
+
+                avatar.src =
+                    `media/${member.rank}.png`;
+
+                avatar.alt =
+                    `${member.rank} avatar`;
+
+
+                const name =
+                    document.createElement("span");
+
+                name.className = "member-name";
+
+                name.textContent =
+                    member.display_name;
+
+
+                const rank =
+                    document.createElement("span");
+
+                rank.className = "member-rank";
+
+                rank.textContent =
+                    member.rank;
+
+
+                /*
+                 * This checkbox is intentionally
+                 * visually placed over the card's
+                 * top-right corner.
+                 */
+                const check =
+                    document.createElement("input");
+
+                check.type = "checkbox";
+                check.className = "member-check";
+
+                check.checked =
+                    selectedMemberIds.has(
+                        Number(member.id)
+                    );
+
+
+                /*
+                 * Clicking the checkbox itself should
+                 * not cause a second toggle.
+                 */
+                check.addEventListener(
+                    "click",
+                    event => {
+                        event.stopPropagation();
+                    }
+                );
+
+
+                check.addEventListener(
+                    "change",
+                    () => {
+
+                        setMemberSelected(
+                            Number(member.id),
+                            check.checked,
+                            card
+                        );
+                    }
+                );
+
+
+                card.appendChild(avatar);
+                card.appendChild(name);
+                card.appendChild(rank);
+                card.appendChild(check);
+
+
+                /*
+                 * Clicking anywhere on the card
+                 * toggles selection.
+                 */
+                card.addEventListener("click", () => {
+
+                    const id =
+                        Number(member.id);
+
+                    const selected =
+                        !selectedMemberIds.has(id);
+
+                    setMemberSelected(
+                        id,
+                        selected,
+                        card
+                    );
+
+                    check.checked = selected;
+                });
+
+
+                memberGrid.appendChild(card);
+            }
+
+            updateSelectionUI();
+        }
+
+
+        function setMemberSelected(
+            memberId,
+            selected,
+            card
+        ) {
+
+            if (selected) {
+                selectedMemberIds.add(memberId);
+            } else {
+                selectedMemberIds.delete(memberId);
+            }
+
+            card.classList.toggle(
+                "selected",
+                selected
+            );
+
+            updateSelectionUI();
+        }
+
+
+        /*
+         * Select all / deselect all.
+         */
+        selectAllMembers.addEventListener(
+            "change",
+            () => {
+
+                const cards =
+                    memberGrid.querySelectorAll(
+                        ".member-card"
+                    );
+
+                for (const card of cards) {
+
+                    const id =
+                        Number(card.dataset.memberId);
+
+                    const checkbox =
+                        card.querySelector(
+                            ".member-check"
+                        );
+
+                    const selected =
+                        selectAllMembers.checked;
+
+                    if (selected) {
+                        selectedMemberIds.add(id);
+                    } else {
+                        selectedMemberIds.delete(id);
+                    }
+
+                    card.classList.toggle(
+                        "selected",
+                        selected
+                    );
+
+                    checkbox.checked = selected;
+                }
+
+                updateSelectionUI();
+            }
+        );
+
+
+        function updateSelectionUI() {
+
+            const count =
+                selectedMemberIds.size;
+
+            selectedCount.textContent =
+                `${count} selected`;
+
+
+            if (count > 0) {
+
+                specifyMembersButton.textContent =
+                    `Specify members (${count})`;
+
+            } else {
+
+                specifyMembersButton.textContent =
+                    "Specify members";
+            }
+
+
+            const cards =
+                memberGrid.querySelectorAll(
+                    ".member-card"
+                );
+
+            if (cards.length > 0) {
+
+                selectAllMembers.checked =
+                    count === cards.length;
+
+                selectAllMembers.indeterminate =
+                    count > 0 &&
+                    count < cards.length;
+
+            } else {
+
+                selectAllMembers.checked = false;
+                selectAllMembers.indeterminate = false;
+            }
+        }
+
+
+        /*
+         * Check whether the user is already logged in.
+         *
+         * The backend identifies the user through
+         * its HTTP-only session cookie.
+         */
+        async function checkLogin() {
+
+            try {
+
+                const response = await fetch("/api/me", {
+                    method: "GET",
+                    credentials: "include"
+                });
+
+                if (!response.ok) {
+
+                    showLoggedOut();
+                    return;
+                }
+
+                const data =
+                    await response.json();
+
+                if (!data.authenticated) {
+
+                    showLoggedOut();
+                    return;
+                }
+
+                showLoggedIn(data.member);
+
+            } catch (error) {
+
+                console.error(error);
+
+                showLoggedOut();
+            }
+        }
+
+
+        /*
+         * Login.
+         */
+        loginForm.addEventListener(
+            "submit",
+            async event => {
+
+                event.preventDefault();
+
+                loginMessage.textContent =
+                    "Logging in...";
+
+
+                const username =
+                    document
+                        .getElementById("username")
+                        .value
+                        .trim();
+
+                const password =
+                    document
+                        .getElementById("password")
+                        .value;
+
+
+                try {
+
+                    const response =
+                        await fetch("/api/login", {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            credentials: "include",
+
+                            body: JSON.stringify({
+                                username,
+                                password
+                            })
+                        });
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        loginMessage.textContent =
+                            data.error ||
+                            "Login failed.";
+
+                        return;
+                    }
+
+
+                    loginForm.reset();
+
+                    loginMessage.textContent = "";
+
+                    showLoggedIn(data.member);
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    loginMessage.textContent =
+                        "Could not connect to the server.";
+                }
+            }
+        );
+
+
+        /*
+         * Logout.
+         */
+        logoutButton.addEventListener(
+            "click",
+            async () => {
+
+                try {
+
+                    await fetch("/api/logout", {
+                        method: "POST",
+                        credentials: "include"
+                    });
+
+                } catch (error) {
+
+                    console.error(error);
+                }
+
+                showLoggedOut();
+            }
+        );
+
+
+        /*
+         * Send invite.
+         */
+        inviteForm.addEventListener(
+            "submit",
+            async event => {
+
+                event.preventDefault();
+
+                inviteMessage.textContent =
+                    "Sending...";
+
+
+                const value =
+                    inviteValue.value.trim();
+
+
+                let type =
+                    getAccessType();
+
+
+                /*
+                 * If the user has selected members,
+                 * the access type becomes specific_members.
+                 */
+                if (selectedMemberIds.size > 0) {
+                    type = "specific_members";
+                }
+
+
+                let memberIds = [];
+
+
+                if (type === "specific_members") {
+
+                    memberIds =
+                        [...selectedMemberIds];
+
+                    if (memberIds.length === 0) {
+
+                        inviteMessage.textContent =
+                            "Select at least one member.";
+
+                        return;
+                    }
+                }
+
+
+                try {
+
+                    const response =
+                        await fetch("/api/invites", {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            credentials: "include",
+
+                            body: JSON.stringify({
+                                invite_value: value,
+                                access_type: type,
+                                member_ids: memberIds
+                            })
+                        });
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        inviteMessage.textContent =
+                            data.error ||
+                            "Could not send invite.";
+
+                        return;
+                    }
+
+
+                    inviteForm.reset();
+
+                    selectedMemberIds.clear();
+
+                    closeMemberMenu();
+
+                    renderMembers(
+                        await getMembersForReset()
+                    );
+
+                    inviteMessage.textContent =
+                        "Invite sent.";
+
+                    loadInvites();
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    inviteMessage.textContent =
+                        "Could not connect to the server.";
+                }
+            }
+        );
+
+
+        /*
+         * Refresh the currently loaded member cards
+         * after the form is reset.
+         */
+        async function getMembersForReset() {
+
+            try {
+
+                const response =
+                    await fetch("/api/members", {
+                        method: "GET",
+                        credentials: "include"
+                    });
+
+                if (!response.ok) {
+                    return [];
+                }
+
+                const data =
+                    await response.json();
+
+                return data.members || [];
+
+            } catch (error) {
+
+                console.error(error);
+
+                return [];
+            }
+        }
+
+
+        /*
+         * Load visible invites.
+         */
+        async function loadInvites() {
+
+            inviteList.textContent =
+                "Loading...";
+
+            try {
+
+                const response =
+                    await fetch("/api/invites", {
+
+                        method: "GET",
+                        credentials: "include"
+                    });
+
+
+                if (!response.ok) {
+
+                    inviteList.textContent =
+                        "Could not load invites.";
+
+                    return;
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                const invites =
+                    data.invites || [];
+
+                let members = [];
+
+                try {
+                    const membersResponse =
+                        await fetch("/api/members", {
+                            method: "GET",
+                            credentials: "include"
+                        });
+
+                    if (membersResponse.ok) {
+                        const membersData =
+                            await membersResponse.json();
+
+                        members =
+                            membersData.members || [];
+                    }
+                } catch (memberError) {
+                    console.error(
+                        "Could not load member ranks:",
+                        memberError
+                    );
+                }
+
+                const rankByName =
+                    new Map(
+                        members.map(member => [
+                            member.display_name,
+                            member.rank
+                        ])
+                    );
+
+                invites.forEach(invite => {
+                    invite.rank =
+                        rankByName.get(
+                            invite.display_name
+                        ) || "recruit";
+                });
+
+                renderInvites(invites);
+
+            } catch (error) {
+
+                console.error(error);
+
+                inviteList.textContent =
+                    "Could not connect to the server.";
+            }
+        }
+
+
+        /*
+         * Render invites.
+         */
+        function renderInvites(invites) {
+
+            inviteList.innerHTML = "";
+
+            if (invites.length === 0) {
+
+                inviteList.textContent =
+                    "No invites yet.";
+
+                return;
+            }
+
+
+            /*
+             * API returns newest first.
+             * Reverse it for chat-style rendering so
+             * the newest invite is at the bottom.
+             */
+            const chronologicalInvites =
+                [...invites].reverse();
+
+
+            for (const invite of chronologicalInvites) {
+
+                const container =
+                    document.createElement("div");
+
+                container.className =
+                    "invite-item";
+
+
+                const meta =
+                    document.createElement("div");
+
+                meta.className =
+                    "invite-item-meta";
+
+
+                const avatar =
+                    document.createElement("img");
+
+                avatar.className =
+                    "invite-sender-avatar";
+
+                avatar.src =
+                    `media/${invite.rank || "recruit"}.png`;
+
+                avatar.alt =
+                    "Member avatar";
+
+
+                const name =
+                    document.createElement("strong");
+
+                name.textContent =
+                    invite.display_name;
+
+
+                meta.appendChild(avatar);
+                meta.appendChild(name);
+
+
+                const value =
+                    document.createElement("div");
+
+                value.textContent =
+                    invite.invite_value;
+
+
+                const actions =
+                    document.createElement("div");
+
+                actions.className =
+                    "invite-item-actions";
+
+
+                const copyButton =
+                    document.createElement("button");
+
+                copyButton.textContent =
+                    "Copy ID";
+
+
+                copyButton.addEventListener(
+                    "click",
+                    async () => {
+
+                        await navigator.clipboard
+                            .writeText(
+                                invite.invite_value
+                            );
+
+                        copyButton.textContent =
+                            "Copied";
+
+
+                        setTimeout(() => {
+
+                            copyButton.textContent =
+                                "Copy ID";
+
+                        }, 1000);
+                    }
+                );
+
+
+                const joinButton =
+                    document.createElement("button");
+
+                joinButton.textContent =
+                    "Join";
+
+
+                joinButton.addEventListener(
+                    "click",
+                    () => {
+
+                        window.open(
+                            invite.join_url,
+                            "_blank",
+                            "noopener,noreferrer"
+                        );
+                    }
+                );
+
+
+                actions.appendChild(copyButton);
+                actions.appendChild(joinButton);
+
+                container.appendChild(meta);
+                container.appendChild(value);
+                container.appendChild(actions);
+
+                inviteList.appendChild(container);
+            }
+
+
+            /*
+             * Keep the newest invite visible at the bottom.
+             */
+            inviteList.scrollTop =
+                inviteList.scrollHeight;
+        }
+
+
+        /*
+         * Logged-in state.
+         */
+        function showLoggedIn(member) {
+
+            userName.textContent =
+                "Logged in as: " +
+                member.display_name;
+
+            logoutButton.hidden = false;
+
+            loginSection.hidden = true;
+            memberSection.hidden = false;
+
+            loadInvites();
+        }
+
+
+        /*
+         * Logged-out state.
+         */
+        function showLoggedOut() {
+
+            userName.textContent =
+                "Not logged in";
+
+            logoutButton.hidden = true;
+
+            loginSection.hidden = false;
+            memberSection.hidden = true;
+
+            inviteList.innerHTML = "";
+
+            selectedMemberIds.clear();
+
+            closeMemberMenu();
+        }
+
+
+        /*
+         * Run when the page opens.
+         */
+        checkLogin();
+
+    </script>
+
+</body>
+</html>

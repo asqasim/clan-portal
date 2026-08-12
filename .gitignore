@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+
+node_modules/
+.vercel/
+.vercel
+hash_gen.js
