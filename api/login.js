@@ -62,7 +62,7 @@ module.exports = async (req, res) => {
          */
         const { data: member, error: memberError } = await supabase
             .from("members")
-            .select("id, username, password_hash, display_name, role")
+            .select("id, username, password_hash, display_name, rank")
             .eq("username", cleanUsername)
             .maybeSingle();
 
@@ -163,7 +163,7 @@ module.exports = async (req, res) => {
                 id: member.id,
                 username: member.username,
                 display_name: member.display_name,
-                role: member.role
+                rank: member.rank
             }
         });
 

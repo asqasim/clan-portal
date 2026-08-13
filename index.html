@@ -819,6 +819,8 @@
     padding:0 1em;
     background:repeating-linear-gradient(135deg, var(--stripe), var(--stripe) 10px, transparent 10px, transparent 20px);
     border-top:4px solid var(--stripe);
+      position: relative;
+  z-index: 1000;
   }
 
   .pbtn{
@@ -2122,14 +2124,52 @@
           <span class="panel-tag" id="pTag"></span>
         </div>
 
-        <div class="panel-stats">
-          <div class="stat"><span>Rank</span><b id="pRank"></b></div>
-        </div>
-      </div>
+<div class="panel-stats">
 
-      <div class="panel-footer">
-        <button class="pbtn close" id="btnClose">Close</button>
-      </div>
+    <div class="stat">
+        <span>Rank</span>
+        <b id="pRank"></b>
+    </div>
+
+    <div class="stat">
+        <span>Member Since</span>
+        <b id="profileMemberSince">—</b>
+    </div>
+
+    <div class="stat">
+        <span>Cryzen Level</span>
+        <b id="profileCryzenLevel">—</b>
+    </div>
+
+    <div class="stat">
+        <span>Main Weapon</span>
+        <b id="profileMainWeapon">—</b>
+    </div>
+
+    <div class="stat">
+        <span>Discord</span>
+        <b id="profileDiscord">—</b>
+    </div>
+
+</div>
+
+<div class="panel-footer">
+
+    <a
+        class="pbtn more"
+        id="profileLearnMore"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        Learn More
+    </a>
+
+    <button class="pbtn close" id="btnClose">
+        Close
+    </button>
+
+</div>
     </div>
   </div>
 </div>
@@ -2393,8 +2433,10 @@ function fallbackAvatar() {
     loginMessage.textContent = '';
     clearTimeout(loginCloseTimer);
     loginBackdrop.classList.remove('closing');
+
     loginBackdrop.classList.remove('open');
     void loginBackdrop.offsetWidth; // restart the corner animation from center every time
+         backdrop.classList.add('open');
     loginBackdrop.classList.add('open');
     document.body.classList.add('no-scroll');
   }
@@ -2595,6 +2637,7 @@ const pLearnMore = document.getElementById('profileLearnMore');
     pCryzenLevel.textContent = member.cryzen_lvl || '—';
     pMainWeapon.textContent = member.main_weapon || '—';
     pDiscord.textContent = member.discord_username || '—';
+    pLearnMore.href = member.cryzen_profile || '#';
 
     clearTimeout(closeTimer);
     backdrop.classList.remove('closing');
@@ -2614,7 +2657,7 @@ const pLearnMore = document.getElementById('profileLearnMore');
   }
 
   document.getElementById('btnClose').addEventListener('click', closeProfile);
-  backdrop.addEventListener('click', e => { if(e.target === backdrop) closeProfile(); });
+  backdrop.addEventListener('click', e => { if(e.target === backdrop) closeProfile();  });
 
   // ================= rules floating panel ================= 
   const rulesBackdrop = document.getElementById('rulesBackdrop');

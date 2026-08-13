@@ -68,7 +68,7 @@ async function getAuthenticatedMember(req) {
                 id,
                 username,
                 display_name,
-                role
+                rank
             )
         `)
         .eq("token_hash", tokenHash)
@@ -382,7 +382,8 @@ async function getInvites(req, res) {
                 access_type,
                 created_at,
                 members!invites_created_by_fkey (
-                    display_name
+                    display_name,
+                    rank
                 )
             `)
             .eq("access_type", "public")
@@ -435,7 +436,8 @@ async function getInvites(req, res) {
                 access_type,
                 created_at,
                 members!invites_created_by_fkey (
-                    display_name
+                    display_name,
+                    rank
                 )
             `)
             .eq("access_type", "members_only")
@@ -505,7 +507,8 @@ async function getInvites(req, res) {
                     access_type,
                     created_at,
                     members!invites_created_by_fkey (
-                        display_name
+                        display_name,
+                        rank
                     )
                 `)
                 .gt(
@@ -576,17 +579,18 @@ function formatInvites(invites) {
             invite.members?.display_name ||
             "Unknown member";
 
+        const rank =
+            invite.members?.rank ||
+            "recruit";
+
         return {
             id: invite.id,
             invite_value: invite.invite_value,
             access_type: invite.access_type,
             display_name: displayName,
+            rank: rank,
             created_at: invite.created_at,
 
-            /*
-             * This is the actual URL users
-             * will open with the Join button.
-             */
             join_url:
                 "https://cryzen.io/play?id=" +
                 invite.invite_value
