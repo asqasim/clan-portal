@@ -2303,6 +2303,10 @@
   /*
    * Check whether the visitor is already logged in.
    * The backend identifies the user through its HTTP-only session cookie.
+   *
+   * The roster and the visible invites are public, so they're loaded either
+   * way — login only changes which member-only invites the server includes
+   * and unlocks sending a new one.
    */
   async function checkLogin(){
     try{
@@ -2313,22 +2317,23 @@
 
       if(!response.ok){
         showLoggedOut();
-        return;
+      }else{
+        const data = await response.json();
+
+        if(!data.authenticated){
+          showLoggedOut();
+        }else{
+          showLoggedIn(data.member);
+        }
       }
-
-      const data = await response.json();
-
-      if(!data.authenticated){
-        showLoggedOut();
-        return;
-      }
-
-      showLoggedIn(data.member);
 
     }catch(error){
       console.error(error);
       showLoggedOut();
     }
+
+    loadMembers();
+    loadInvites();
   }
 
   function showLoggedIn(member){
@@ -2350,37 +2355,15 @@
     accountMenuUser.appendChild(tagEl);
 
     closeLoginModal();
-
-    loadMembers();
-    loadInvites();
   }
 
   function showLoggedOut(){
     currentMember = null;
-    allMembers = [];
-    membersLoaded = false;
     resetVisibility();
 
     loginNavBtn.hidden = false;
     accountAvatarBtn.hidden = true;
     closeAccountMenu();
-
-    roster.innerHTML = '';
-    const lock = document.createElement('div');
-    lock.className = 'locked-note';
-    const p = document.createElement('p');
-    p.textContent = 'Sign in with your clan account to view the roster.';
-    const btn = document.createElement('button');
-    btn.className = 'pbtn';
-    btn.type = 'button';
-    btn.textContent = 'Log In';
-    btn.addEventListener('click', openLoginModal);
-    lock.appendChild(p);
-    lock.appendChild(btn);
-    roster.appendChild(lock);
-
-    invitesList.innerHTML = '<div class="invites-empty">Sign in to see invites</div>';
-    setInviteMessage('');
   }
 
   // ================= login modal =================
@@ -2438,6 +2421,9 @@
       loginMessage.textContent = '';
       showLoggedIn(data.member);
 
+      // member-only invites may now be visible
+      loadInvites();
+
     }catch(error){
       console.error(error);
       loginMessage.textContent = 'Could not connect to the server.';
@@ -2457,6 +2443,9 @@
       console.error(error);
     }
     showLoggedOut();
+
+    // member-only invites should no longer show
+    loadInvites();
   });
 
   // ================= account menu =================
@@ -2758,8 +2747,9 @@
    */
   async function handleSend(){
     if(!currentMember){
-      setInviteMessage('Please log in first.', 'error');
+      setInviteMessage('Log in to send an invite.', 'error');
       sendBtn.blur();
+      openLoginModal();
       return;
     }
 
@@ -2898,11 +2888,6 @@
   let pickerCloseTimer = null;
 
   async function openPicker(){
-    if(!currentMember){
-      setInviteMessage('Please log in first.', 'error');
-      return;
-    }
-
     pickerGrid.innerHTML = '<div class="picker-empty">Loading members\u2026</div>';
 
     clearTimeout(pickerCloseTimer);
