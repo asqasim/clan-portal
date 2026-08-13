@@ -18,6 +18,11 @@
     --ice-bright:#cdf2ff;
     --text:#e7f4fb;
     --text-dim:#7f97a3;
+
+    --rank-owner:#f2c94c;
+    --rank-captain:#b083f0;
+    --rank-sergeant:#5fa8e8;
+    --rank-recruit:#9aa7ae;
   }
 
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -220,6 +225,9 @@
     cursor:pointer;
     display:block;
     transition:border-color .2s ease;
+  }
+  .account-avatar[hidden]{
+    display:none;
   }
   .account-avatar:hover,
   .account-wrap.open .account-avatar{
@@ -1073,6 +1081,12 @@
   .state--default span:nth-child(4) { margin-right: 5px; }
   .state--sent { display: none; }
   .state--sent svg { transform: scale(1.25); margin-right: 8px; }
+  /* the sent-panel shows "Sent" by default once visible; while a request is
+     actually in flight (button has .is-sending, added/removed by JS based on
+     the real fetch result) it shows "Sending…" instead */
+  .state--sent .label-sending{ display: none; }
+  .button.is-sending .state--sent .label-sent{ display: none; }
+  .button.is-sending .state--sent .label-sending{ display: flex; }
   .button:focus .state--default { position: absolute; }
   .button:focus .state--sent { display: flex; }
   .button:focus .state--sent span {
@@ -1449,178 +1463,6 @@
     color:var(--text-dim);
     font-weight:500;
   }
-  .vis-option .vis-chevron-right{
-    width:10px;
-    height:10px;
-    opacity:0.6;
-    flex-shrink:0;
-  }
-
-  /* ---------- specify-recipients small attached flyout ---------- */
-
-  .vis-option-specify{
-    position:relative;
-    padding:0;
-    display:block;
-  }
-  .vis-specify-toggle{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:0.6em;
-    padding:0.7em 0.9em;
-  }
-  .vis-option-specify:hover .vis-specify-toggle{
-    color:var(--ice-bright);
-  }
-  .vis-option-specify.active .vis-specify-toggle{
-    color:var(--ice-bright);
-  }
-
-  .vis-specify-flyout{
-    position:absolute;
-    top:-1px;
-    left:calc(100% + 8px);
-    width:200px;
-    background-color:var(--panel);
-    outline:1px solid var(--outline);
-    border:1px solid #000;
-    box-shadow:0 12px 28px rgba(0,0,0,0.45);
-    z-index:25;
-    display:flex;
-    flex-direction:column;
-    opacity:0;
-    visibility:hidden;
-    transform:translateX(6px);
-    transition:opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
-  }
-  .vis-select.specify-open .vis-specify-flyout{
-    opacity:1;
-    visibility:visible;
-    transform:translateX(0);
-    transition:opacity .18s ease, transform .18s ease, visibility 0s linear 0s;
-  }
-  @media (max-width:560px){
-    .vis-specify-flyout{
-      left:0;
-      top:100%;
-      width:100%;
-      margin-top:4px;
-    }
-  }
-
-  .vis-specify-selectall{
-    flex-shrink:0;
-    padding:0.7em 0.8em;
-    border-bottom:1px solid rgba(111,195,232,0.12);
-  }
-  .vis-specify-selectall .vis-checkbox-label{
-    font-size:0.66em;
-  }
-
-  .vis-specify-list{
-    max-height:190px;
-    overflow-y:auto;
-    display:flex;
-    flex-direction:column;
-  }
-  .vis-specify-list::-webkit-scrollbar{ width:5px; }
-  .vis-specify-list::-webkit-scrollbar-track{ background:transparent; }
-  .vis-specify-list::-webkit-scrollbar-thumb{ background:rgba(111,195,232,0.35); border-radius:3px; }
-
-  .vis-specify-row{
-    display:flex;
-    align-items:center;
-    gap:0.55em;
-    padding:0.5em 0.8em;
-    font-size:0.75em;
-    cursor:pointer;
-    border-bottom:1px solid rgba(111,195,232,0.08);
-    transition:background-color .15s ease;
-  }
-  .vis-specify-row:last-child{ border-bottom:none; }
-  .vis-specify-row:hover{
-    background:rgba(111,195,232,0.08);
-  }
-  .vis-specify-name{
-    font-weight:700;
-    color:var(--text);
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .vis-specify-tag{
-    flex-shrink:0;
-    margin-left:auto;
-    font-size:0.78em;
-    font-weight:700;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    color:var(--text-dim);
-  }
-
-  .vis-checkbox{
-    display:inline-flex;
-    align-items:center;
-    gap:0.6em;
-    cursor:pointer;
-    user-select:none;
-  }
-  .vis-checkbox input{
-    position:absolute;
-    opacity:0;
-    width:0;
-    height:0;
-  }
-  .vis-checkbox-box{
-    position:relative;
-    width:16px;
-    height:16px;
-    flex-shrink:0;
-    border:1px solid var(--outline);
-    background:#0f1a22;
-    transition:border-color .2s ease, background-color .2s ease;
-  }
-  .vis-checkbox-box::after{
-    content:"";
-    position:absolute;
-    left:4px;
-    top:1px;
-    width:5px;
-    height:9px;
-    border:solid var(--bg-0);
-    border-width:0 2px 2px 0;
-    transform:rotate(45deg);
-    opacity:0;
-    transition:opacity .15s ease;
-  }
-  .vis-checkbox input:checked + .vis-checkbox-box{
-    background:var(--ice-bright);
-    border-color:var(--ice-bright);
-  }
-  .vis-checkbox input:checked + .vis-checkbox-box::after{
-    opacity:1;
-  }
-  .vis-checkbox input:indeterminate + .vis-checkbox-box{
-    background:var(--ice);
-    border-color:var(--ice);
-  }
-  .vis-checkbox input:indeterminate + .vis-checkbox-box::after{
-    opacity:1;
-    top:6px;
-    left:3px;
-    width:7px;
-    height:0;
-    border-width:0 0 2px 0;
-    transform:none;
-  }
-  .vis-checkbox-label{
-    font-size:0.78em;
-    font-weight:700;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    color:var(--text);
-  }
 
   /* narrow screens: input drops to its own row, dropdown + send share the next */
   @media (max-width:560px){
@@ -1764,123 +1606,41 @@
     color:#ff8a8a;
     text-align:center;
   }
-  .login-submit{
-    width:100%;
-    margin-top:0.2em;
-    text-align:center;
-  }
-
-  /* ---------- members picker modal (3-column grid) ---------- */
-  .picker-frame{ width:min(92vw, 640px); }
-  .picker-body{ align-items:stretch; padding:1.2em 1.3em 1.2em; }
-  .picker-toolbar{
+  .login-password-wrap{
     position:relative;
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    padding-bottom:0.8em;
-    margin-bottom:0.9em;
-    border-bottom:1px solid rgba(111,195,232,0.14);
   }
-  .picker-count{
-    font-size:0.68em;
-    font-weight:700;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    color:var(--text-dim);
-  }
-  .picker-grid{
-    position:relative;
+  .login-password-wrap .login-input{
     width:100%;
-    display:grid;
-    grid-template-columns:repeat(3, minmax(0,1fr));
-    gap:0.7em;
-    max-height:52vh;
-    overflow-y:auto;
-    padding-right:2px;
+    padding-right:2.5em;
   }
-  @media (max-width:560px){
-    .picker-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
-  }
-  .picker-grid::-webkit-scrollbar{ width:6px; }
-  .picker-grid::-webkit-scrollbar-track{ background:transparent; }
-  .picker-grid::-webkit-scrollbar-thumb{ background:rgba(111,195,232,0.35); border-radius:3px; }
-
-  .picker-card{
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    text-align:center;
-    gap:0.4em;
-    padding:0.9em 0.6em 0.7em;
-    background-color:var(--panel);
-    outline:1px solid var(--outline);
-    border:1px solid #000;
-    cursor:pointer;
-    user-select:none;
-    transition:outline-color .2s ease, transform .2s ease, background-color .2s ease;
-  }
-  .picker-card:hover{ outline-color:var(--ice); transform:translateY(-2px); }
-  .picker-card.selected{ outline-color:var(--ice-bright); background-color:#0e1c24; }
-  .picker-avatar{
-    width:46px;
-    height:46px;
-    border-radius:50%;
-    overflow:hidden;
-    box-shadow:0 0 0 2px rgba(111,195,232,0.25);
-  }
-  .picker-avatar img{ width:100%; height:100%; object-fit:cover; }
-  .picker-name{
-    font-size:0.76em;
-    font-weight:700;
-    color:var(--text);
-    overflow-wrap:anywhere;
-  }
-  .picker-rank{
-    font-size:0.62em;
-    font-weight:700;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    color:var(--text-dim);
-  }
-  .picker-check{
+  .pw-toggle{
     position:absolute;
-    top:-6px;
-    right:-6px;
-    width:18px;
-    height:18px;
+    right:0.6em;
+    top:50%;
+    transform:translateY(-50%);
+    width:1.5em;
+    height:1.5em;
+    padding:0;
+    background:none;
+    border:none;
+    color:var(--text-dim);
+    cursor:pointer;
     display:flex;
     align-items:center;
     justify-content:center;
-    background:var(--panel);
-    border:1px solid var(--outline);
-    border-radius:50%;
-    opacity:0;
-    transition:opacity .2s ease, border-color .2s ease, background-color .2s ease;
+    transition:color .2s ease;
   }
-  .picker-card.selected .picker-check{
-    opacity:1;
-    background:var(--ice-bright);
-    border-color:var(--ice-bright);
-  }
-  .picker-check::after{
-    content:"";
-    width:4px;
-    height:8px;
-    border:solid var(--bg-0);
-    border-width:0 2px 2px 0;
-    transform:rotate(45deg);
-    opacity:0;
-  }
-  .picker-card.selected .picker-check::after{ opacity:1; }
-  .picker-empty{
-    grid-column:1 / -1;
+  .pw-toggle:hover{ color:var(--ice-bright); }
+  .pw-toggle svg{ width:100%; height:100%; }
+  .pw-toggle .icon-eye-off{ display:none; }
+  .pw-toggle.is-visible .icon-eye{ display:none; }
+  .pw-toggle.is-visible .icon-eye-off{ display:block; }
+  .login-submit{
     text-align:center;
-    padding:2em 0;
-    font-size:0.75em;
-    color:var(--text-dim);
   }
+
 </style>
 </head>
 <body>
@@ -1928,8 +1688,8 @@
   <div class="hero-content">
     <h1 class="hero-title">Rime Wardens</h1>
     <div class="hero-buttons">
-      <a class="hero-btn hero-btn-apply" href="https://cryzen.io/center/clans/clan/R1ME" target="_blank" rel="noopener noreferrer">Apply</a>
-      <a class="hero-btn hero-btn-discord" href="https://discord.gg/samplecode" target="_blank" rel="noopener noreferrer">Discord</a>
+      <a class="hero-btn hero-btn-apply" href="https://cryzen.io/center/clans/clan/R1ME" target="_blank" rel="noopener noreferrer">Join at cryzen.io </a>
+      <a class="hero-btn hero-btn-discord" href="https://discord.com/users/1461663614988714096" target="_blank" rel="noopener noreferrer">Discord</a>
     </div>
   </div>
 </section>
@@ -2022,14 +1782,6 @@
           <div class="vis-option" data-value="members">
             <span>Members Only</span>
           </div>
-          <div class="vis-option vis-option-specify" id="visOptionSpecify">
-            <div class="vis-specify-toggle" id="visSpecifyToggle">
-              <span>Specify</span>
-              <svg class="vis-chevron-right" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -2065,7 +1817,17 @@
             </g>
           </svg>
         </div>
-        <p>
+        <p class="label-sending">
+          <span style="--i:5">S</span>
+          <span style="--i:6">e</span>
+          <span style="--i:7">n</span>
+          <span style="--i:8">d</span>
+          <span style="--i:9">i</span>
+          <span style="--i:10">n</span>
+          <span style="--i:11">g</span>
+          <span style="--i:12">&hellip;</span>
+        </p>
+        <p class="label-sent">
           <span style="--i:5">S</span>
           <span style="--i:6">e</span>
           <span style="--i:7">n</span>
@@ -2152,6 +1914,7 @@
     </div>
 
 </div>
+</div>
 
 <div class="panel-footer">
 
@@ -2190,11 +1953,11 @@
 
       <div class="panel-body rules-body">
         <ol class="rules-list">
-          <li class="rule-item"><span class="rule-index">1</span><span class="rule-text">Sample Rule</span></li>
-          <li class="rule-item"><span class="rule-index">2</span><span class="rule-text">Sample Rule</span></li>
-          <li class="rule-item"><span class="rule-index">3</span><span class="rule-text">Sample Rule</span></li>
-          <li class="rule-item"><span class="rule-index">4</span><span class="rule-text">Sample Rule</span></li>
-          <li class="rule-item"><span class="rule-index">5</span><span class="rule-text">Sample Rule</span></li>
+          <li class="rule-item"><span class="rule-index">1</span><span class="rule-text">Grind Clan Wars</span></li>
+          <li class="rule-item"><span class="rule-index">2</span><span class="rule-text">Respect the captains</span></li>
+          <li class="rule-item"><span class="rule-index">3</span><span class="rule-text">Stay active and bring positive energy</span></li>
+          <li class="rule-item"><span class="rule-index">4</span><span class="rule-text">Keep checking this portal regularly for squad invites, news, and events</span></li>
+          <li class="rule-item"><span class="rule-index">5</span><span class="rule-text">If you run into any issues or have feedback, bring it straight to clan chat</span></li>
         </ol>
       </div>
 
@@ -2226,44 +1989,27 @@
           </div>
           <div class="login-field">
             <label class="login-label" for="loginPassword">Password</label>
-            <input class="login-input" id="loginPassword" type="password" autocomplete="current-password" required>
+            <div class="login-password-wrap">
+              <input class="login-input" id="loginPassword" type="password" autocomplete="current-password" required>
+              <button type="button" class="pw-toggle" id="loginPasswordToggle" aria-label="Show password">
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.6"/>
+                </svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.6"/>
+                  <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <p class="login-message" id="loginMessage"></p>
-          <button class="pbtn login-submit" type="submit">Log In</button>
         </form>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="pickerBackdrop">
-  <div class="modal-frame picker-frame">
-    <span class="frame-corner tl"></span>
-    <span class="frame-corner tr"></span>
-    <span class="frame-corner bl"></span>
-    <span class="frame-corner br"></span>
-    <div class="modal-panel">
-      <div class="panel-header">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L20 5.5V11C20 16 16.7 20.2 12 22C7.3 20.2 4 16 4 11V5.5L12 2Z" stroke="#cdf2ff" stroke-width="1.4" stroke-linejoin="round"/>
-        </svg>
-        <span>Select Members</span>
-      </div>
-      <div class="panel-body picker-body">
-        <div class="picker-toolbar">
-          <label class="vis-checkbox">
-            <input type="checkbox" id="pickerSelectAll">
-            <span class="vis-checkbox-box"></span>
-            <span class="vis-checkbox-label">Select All</span>
-          </label>
-          <span class="picker-count" id="pickerCount">0 selected</span>
-        </div>
-        <div class="picker-grid" id="pickerGrid">
-          <div class="picker-empty">Loading members&hellip;</div>
-        </div>
-      </div>
       <div class="panel-footer">
-        <button class="pbtn" id="pickerDone">Done</button>
+        <button class="pbtn close" type="button" id="loginClose">Close</button>
+        <button class="pbtn login-submit" type="submit" form="loginForm">Log In</button>
       </div>
     </div>
   </div>
@@ -2304,6 +2050,18 @@ function fallbackAvatar() {
     return rank.charAt(0).toUpperCase() + rank.slice(1);
   }
 
+  // rank -> colour, used on the roster cards and the profile modal
+  const RANK_COLORS = {
+    owner:'var(--rank-owner)',
+    captain:'var(--rank-captain)',
+    sergeant:'var(--rank-sergeant)',
+    recruit:'var(--rank-recruit)'
+  };
+  function rankColor(rank){
+    const key = (rank || 'recruit').toLowerCase();
+    return RANK_COLORS[key] || RANK_COLORS.recruit;
+  }
+
   function fallbackAvatar(){
     const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
       + '<rect width="100" height="100" fill="#0d1620"/>'
@@ -2316,7 +2074,7 @@ function fallbackAvatar() {
   // the currently signed-in member (from /api/me), or null when logged out
   let currentMember = null;
 
-  // cached roster from /api/members, shared by the roster grid and the invite picker
+  // cached roster from /api/members
   let allMembers = [];
   let membersLoaded = false;
 
@@ -2333,6 +2091,7 @@ function fallbackAvatar() {
   const loginForm = document.getElementById('loginForm');
   const loginUsername = document.getElementById('loginUsername');
   const loginPassword = document.getElementById('loginPassword');
+  const loginPasswordToggle = document.getElementById('loginPasswordToggle');
   const loginMessage = document.getElementById('loginMessage');
 
   const roster = document.getElementById('roster');
@@ -2346,15 +2105,7 @@ function fallbackAvatar() {
   const visTrigger = document.getElementById('visTrigger');
   const visLabel = document.getElementById('visLabel');
   const visDropdown = document.getElementById('visDropdown');
-  const visOptions = Array.from(visDropdown.querySelectorAll('.vis-option:not(.vis-option-specify)'));
-  const visOptionSpecify = document.getElementById('visOptionSpecify');
-  const visSpecifyToggle = document.getElementById('visSpecifyToggle');
-
-  const pickerBackdrop = document.getElementById('pickerBackdrop');
-  const pickerGrid = document.getElementById('pickerGrid');
-  const pickerSelectAll = document.getElementById('pickerSelectAll');
-  const pickerCount = document.getElementById('pickerCount');
-  const pickerDone = document.getElementById('pickerDone');
+  const visOptions = Array.from(visDropdown.querySelectorAll('.vis-option'));
 
   let visibilityMode = 'public'; // 'public' | 'members'
 
@@ -2431,12 +2182,12 @@ function fallbackAvatar() {
 
   function openLoginModal(){
     loginMessage.textContent = '';
+    resetPasswordVisibility();
     clearTimeout(loginCloseTimer);
     loginBackdrop.classList.remove('closing');
 
     loginBackdrop.classList.remove('open');
     void loginBackdrop.offsetWidth; // restart the corner animation from center every time
-         backdrop.classList.add('open');
     loginBackdrop.classList.add('open');
     document.body.classList.add('no-scroll');
   }
@@ -2451,7 +2202,23 @@ function fallbackAvatar() {
   }
 
   loginNavBtn.addEventListener('click', openLoginModal);
+  document.getElementById('loginClose').addEventListener('click', closeLoginModal);
   loginBackdrop.addEventListener('click', e => { if(e.target === loginBackdrop) closeLoginModal(); });
+
+  /*
+   * Password show/hide toggle.
+   */
+  function resetPasswordVisibility(){
+    loginPassword.type = 'password';
+    loginPasswordToggle.classList.remove('is-visible');
+    loginPasswordToggle.setAttribute('aria-label', 'Show password');
+  }
+
+  loginPasswordToggle.addEventListener('click', () => {
+    const showing = loginPasswordToggle.classList.toggle('is-visible');
+    loginPassword.type = showing ? 'text' : 'password';
+    loginPasswordToggle.setAttribute('aria-label', showing ? 'Hide password' : 'Show password');
+  });
 
   /*
    * Login.
@@ -2480,6 +2247,7 @@ function fallbackAvatar() {
       }
 
       loginForm.reset();
+      resetPasswordVisibility();
       loginMessage.textContent = '';
       showLoggedIn(data.member);
 
@@ -2561,6 +2329,14 @@ function fallbackAvatar() {
     const owner = members.find(m => m.rank === 'owner');
     const rest = owner ? members.filter(m => m !== owner) : members.slice();
 
+    // keep captains, then sergeants, then recruits grouped together;
+    // members within the same rank stay in their original (backend) order
+    rest.sort((a, b) => {
+      const ai = RANKS.indexOf((a.rank || 'recruit').toLowerCase());
+      const bi = RANKS.indexOf((b.rank || 'recruit').toLowerCase());
+      return (ai === -1 ? RANKS.length : ai) - (bi === -1 ? RANKS.length : bi);
+    });
+
     if(owner){
       const ownerRow = document.createElement('div');
       ownerRow.className = 'row owner-row';
@@ -2609,6 +2385,7 @@ function fallbackAvatar() {
     const tag = document.createElement('div');
     tag.className = 'card-tag';
     tag.textContent = rankLabel(member.rank);
+    tag.style.color = rankColor(member.rank);
     card.appendChild(tag);
 
     card.addEventListener('click', () => openProfile(member));
@@ -2633,6 +2410,7 @@ const pLearnMore = document.getElementById('profileLearnMore');
     pAvatar.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
     pName.textContent = member.display_name;
     pRank.textContent = rankLabel(member.rank);
+    pRank.style.color = rankColor(member.rank);
     pMemberSince.textContent = member.member_since || '—';
     pCryzenLevel.textContent = member.cryzen_lvl || '—';
     pMainWeapon.textContent = member.main_weapon || '—';
@@ -2691,7 +2469,6 @@ const pLearnMore = document.getElementById('profileLearnMore');
       closeAccountMenu();
       closeVisDropdown();
       closeLoginModal();
-      closePicker();
     }
   });
 
@@ -2701,8 +2478,12 @@ const pLearnMore = document.getElementById('profileLearnMore');
    * Load visible invites.
    */
 async function loadInvites(){
-    invitesList.innerHTML =
-        '<div class="invites-empty">Loading…</div>';
+    const hasExistingInvites = invitesList.querySelector('.invite-item') !== null;
+
+    if(!hasExistingInvites){
+        invitesList.innerHTML =
+            '<div class="invites-empty">Loading…</div>';
+    }
 
     try{
         const response = await fetch('/api/invites', {
@@ -2711,8 +2492,10 @@ async function loadInvites(){
         });
 
         if(!response.ok){
-            invitesList.innerHTML =
-                '<div class="invites-empty">Could not load invites.</div>';
+            if(!hasExistingInvites){
+                invitesList.innerHTML =
+                    '<div class="invites-empty">Could not load invites.</div>';
+            }
             return;
         }
 
@@ -2723,8 +2506,10 @@ async function loadInvites(){
     }catch(error){
         console.error(error);
 
-        invitesList.innerHTML =
-            '<div class="invites-empty">Could not connect to the server.</div>';
+        if(!hasExistingInvites){
+            invitesList.innerHTML =
+                '<div class="invites-empty">Could not connect to the server.</div>';
+        }
     }
 }
 
@@ -2826,6 +2611,7 @@ async function handleSend(){
 
 
     setInviteMessage('Sending…');
+    sendBtn.classList.add('is-sending');
 
 
     try{
@@ -2856,6 +2642,7 @@ async function handleSend(){
                 'error'
             );
 
+            sendBtn.classList.remove('is-sending');
             sendBtn.blur();
             return;
         }
@@ -2870,6 +2657,8 @@ async function handleSend(){
             'success'
         );
 
+        sendBtn.classList.remove('is-sending');
+
         await loadInvites();
 
     }catch(error){
@@ -2881,6 +2670,7 @@ async function handleSend(){
             'error'
         );
 
+        sendBtn.classList.remove('is-sending');
         sendBtn.blur();
     }
 }
@@ -2894,10 +2684,9 @@ async function handleSend(){
     }
   });
 
-  // ================= visibility dropdown (Public / Members Only / Specify) =================
+  // ================= visibility dropdown (Public / Members Only) =================
   function setVisOptionActive(value){
     visOptions.forEach(o => o.classList.toggle('active', o.getAttribute('data-value') === value));
-    visOptionSpecify.classList.toggle('active', value === 'specify');
   }
 
 function setVisLabel(){
@@ -2935,141 +2724,6 @@ function resetVisibility(){
       setVisLabel();
       closeVisDropdown();
     });
-  });
-
-  /*
-   * Clicking "Specify" opens the 3-column member picker modal
-   * instead of the old inline flyout.
-   */
-  visSpecifyToggle.addEventListener('click', e => {
-    e.stopPropagation();
-    closeVisDropdown();
-    openPicker();
-  });
-
-  // ================= members picker (3-column grid) =================
-  async function ensureMembersLoaded(){
-    if(membersLoaded) return;
-    try{
-      const response = await fetch('/api/members', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      if(response.ok){
-        const data = await response.json();
-        allMembers = data.members || [];
-        membersLoaded = true;
-      }
-    }catch(error){
-      console.error(error);
-    }
-  }
-
-  let pickerCloseTimer = null;
-
-  async function openPicker(){
-    pickerGrid.innerHTML = '<div class="picker-empty">Loading members\u2026</div>';
-
-    clearTimeout(pickerCloseTimer);
-    pickerBackdrop.classList.remove('closing');
-    pickerBackdrop.classList.remove('open');
-    void pickerBackdrop.offsetWidth;
-    pickerBackdrop.classList.add('open');
-    document.body.classList.add('no-scroll');
-
-    await ensureMembersLoaded();
-    renderPickerGrid();
-  }
-
-  function closePicker(){
-    if(!pickerBackdrop.classList.contains('open')) return;
-    pickerBackdrop.classList.add('closing');
-    pickerBackdrop.classList.remove('open');
-    document.body.classList.remove('no-scroll');
-    clearTimeout(pickerCloseTimer);
-    pickerCloseTimer = setTimeout(() => pickerBackdrop.classList.remove('closing'), 400);
-  }
-
-  pickerBackdrop.addEventListener('click', e => { if(e.target === pickerBackdrop) closePicker(); });
-  pickerDone.addEventListener('click', closePicker);
-
-  function renderPickerGrid(){
-    pickerGrid.innerHTML = '';
-
-    if(allMembers.length === 0){
-      pickerGrid.innerHTML = '<div class="picker-empty">No members found.</div>';
-      syncPickerSelectAll();
-      return;
-    }
-
-    allMembers.forEach(member => {
-      const id = Number(member.id);
-
-      const card = document.createElement('div');
-      card.className = 'picker-card' + (specifiedIds.has(id) ? ' selected' : '');
-      card.dataset.memberId = id;
-
-      const avatar = document.createElement('div');
-      avatar.className = 'picker-avatar';
-      const img = document.createElement('img');
-      img.src = avatarForRank(member.rank);
-      img.alt = '';
-      img.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
-      avatar.appendChild(img);
-      card.appendChild(avatar);
-
-      const name = document.createElement('span');
-      name.className = 'picker-name';
-      name.textContent = member.display_name;
-      card.appendChild(name);
-
-      const rank = document.createElement('span');
-      rank.className = 'picker-rank';
-      rank.textContent = rankLabel(member.rank);
-      card.appendChild(rank);
-
-      const check = document.createElement('span');
-      check.className = 'picker-check';
-      card.appendChild(check);
-
-      card.addEventListener('click', () => {
-        const selected = !specifiedIds.has(id);
-        if(selected) specifiedIds.add(id);
-        else specifiedIds.delete(id);
-
-        card.classList.toggle('selected', selected);
-
-        visibilityMode = 'specify';
-        setVisOptionActive('specify');
-        setVisLabel();
-        syncPickerSelectAll();
-      });
-
-      pickerGrid.appendChild(card);
-    });
-
-    syncPickerSelectAll();
-  }
-
-  function syncPickerSelectAll(){
-    const total = allMembers.length;
-    const checked = specifiedIds.size;
-    pickerCount.textContent = `${checked} selected`;
-    pickerSelectAll.checked = total > 0 && checked === total;
-    pickerSelectAll.indeterminate = checked > 0 && checked < total;
-  }
-
-  pickerSelectAll.addEventListener('click', e => e.stopPropagation());
-  pickerSelectAll.addEventListener('change', () => {
-    if(pickerSelectAll.checked){
-      allMembers.forEach(m => specifiedIds.add(Number(m.id)));
-    }else{
-      specifiedIds.clear();
-    }
-    visibilityMode = 'specify';
-    setVisOptionActive('specify');
-    setVisLabel();
-    renderPickerGrid();
   });
 
   // after the initial letter reveal has played once, stop treating hover-out as a re-trigger
