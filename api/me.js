@@ -12,12 +12,14 @@ const supabase = createClient(
     }
 );
 
+
 function hashSessionToken(token) {
     return crypto
         .createHash("sha256")
         .update(token)
         .digest("hex");
 }
+
 
 function getSessionToken(req) {
     const cookieHeader = req.headers.cookie || "";
@@ -44,6 +46,7 @@ function getSessionToken(req) {
     return null;
 }
 
+
 module.exports = async (req, res) => {
 
     if (req.method !== "GET") {
@@ -54,7 +57,9 @@ module.exports = async (req, res) => {
         });
     }
 
+
     try {
+
         const sessionToken = getSessionToken(req);
 
         if (!sessionToken) {
@@ -63,7 +68,9 @@ module.exports = async (req, res) => {
             });
         }
 
+
         const tokenHash = hashSessionToken(sessionToken);
+
 
         const { data: session, error: sessionError } =
             await supabase
@@ -73,27 +80,33 @@ module.exports = async (req, res) => {
                     expires_at,
                     members (
                         id,
-                        username,
                         display_name,
-                        role
+                        rank,
+                        avatar
                     )
                 `)
                 .eq("token_hash", tokenHash)
                 .maybeSingle();
 
+
         if (sessionError) {
-            console.error("Session lookup error:", sessionError);
+            console.error(
+                "Session lookup error:",
+                sessionError
+            );
 
             return res.status(500).json({
                 error: "Internal server error."
             });
         }
 
+
         if (!session) {
             return res.status(401).json({
                 authenticated: false
             });
         }
+
 
         /*
          * Check whether the session has expired.
@@ -110,19 +123,24 @@ module.exports = async (req, res) => {
             });
         }
 
+
         return res.status(200).json({
             authenticated: true,
 
             member: {
                 id: session.members.id,
-                username: session.members.username,
                 display_name: session.members.display_name,
-                role: session.members.role
+                rank: session.members.rank,
+                avatar: session.members.avatar
             }
         });
 
     } catch (error) {
-        console.error("Me endpoint error:", error);
+
+        console.error(
+            "Me endpoint error:",
+            error
+        );
 
         return res.status(500).json({
             error: "Internal server error."

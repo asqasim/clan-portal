@@ -2231,12 +2231,33 @@
 
 <script>
   // ================= helpers =================
-  const RANKS = ['owner','captain','sergent','recruit'];
+const RANKS = ['owner', 'captain', 'sergeant', 'recruit'];
 
-  function avatarForRank(rank){
-    const r = RANKS.includes(rank) ? rank : 'recruit';
-    return `media/${r}.png`;
-  }
+function avatarForMember(member) {
+    if (member && member.avatar) {
+        return member.avatar;
+    }
+
+    return 'media/recruit.png';
+}
+
+function rankLabel(rank) {
+    if (!rank) return 'Recruit';
+
+    return rank.charAt(0).toUpperCase() + rank.slice(1);
+}
+
+function fallbackAvatar() {
+    const svg =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+        '<rect width="100" height="100" fill="#0d1620"/>' +
+        '<circle cx="50" cy="38" r="18" fill="#213640"/>' +
+        '<path d="M14 96c2-24 17-38 36-38s34 14 36 38" fill="#213640"/>' +
+        '</svg>';
+
+    return 'data:image/svg+xml;charset=UTF-8,' +
+        encodeURIComponent(svg);
+}
 
   function rankLabel(rank){
     if(!rank) return 'Recruit';
@@ -2295,8 +2316,7 @@
   const pickerCount = document.getElementById('pickerCount');
   const pickerDone = document.getElementById('pickerDone');
 
-  let visibilityMode = 'public'; // 'public' | 'members' | 'specify'
-  let specifiedIds = new Set();
+  let visibilityMode = 'public'; // 'public' | 'members'
 
   // ================= session =================
 
@@ -2342,7 +2362,7 @@
     loginNavBtn.hidden = true;
     accountAvatarBtn.hidden = false;
 
-    accountAvatarImg.src = avatarForRank(member.rank);
+    accountAvatarImg.src = avatarForMember(member);
     accountAvatarImg.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
 
     accountMenuUser.innerHTML = '';
@@ -2525,7 +2545,7 @@
     const avatarWrap = document.createElement('div');
     avatarWrap.className = 'avatar-wrap';
     const img = document.createElement('img');
-    img.src = avatarForRank(member.rank);
+    img.src = avatarForMember(member);
     img.alt = '';
     img.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
     avatarWrap.appendChild(img);
@@ -2557,17 +2577,24 @@
   const backdrop = document.getElementById('backdrop');
   const pAvatar = document.getElementById('pAvatar');
   const pName = document.getElementById('pName');
-  const pTag = document.getElementById('pTag');
   const pRank = document.getElementById('pRank');
+  const pMemberSince = document.getElementById('profileMemberSince');
+const pCryzenLevel = document.getElementById('profileCryzenLevel');
+const pMainWeapon = document.getElementById('profileMainWeapon');
+const pDiscord = document.getElementById('profileDiscord');
+const pLearnMore = document.getElementById('profileLearnMore');
 
   let closeTimer = null;
 
   function openProfile(member){
-    pAvatar.src = avatarForRank(member.rank);
+    pAvatar.src = avatarForMember(member);
     pAvatar.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
     pName.textContent = member.display_name;
-    pTag.textContent = rankLabel(member.rank);
     pRank.textContent = rankLabel(member.rank);
+    pMemberSince.textContent = member.member_since || '—';
+    pCryzenLevel.textContent = member.cryzen_lvl || '—';
+    pMainWeapon.textContent = member.main_weapon || '—';
+    pDiscord.textContent = member.discord_username || '—';
 
     clearTimeout(closeTimer);
     backdrop.classList.remove('closing');
@@ -2630,54 +2657,33 @@
   /*
    * Load visible invites.
    */
-  async function loadInvites(){
-    invitesList.innerHTML = '<div class="invites-empty">Loading\u2026</div>';
+async function loadInvites(){
+    invitesList.innerHTML =
+        '<div class="invites-empty">Loading…</div>';
 
     try{
-      const response = await fetch('/api/invites', {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if(!response.ok){
-        invitesList.innerHTML = '<div class="invites-empty">Could not load invites.</div>';
-        return;
-      }
-
-      const data = await response.json();
-      const invites = data.invites || [];
-
-      let members = allMembers;
-
-      if(!membersLoaded){
-        try{
-          const membersResponse = await fetch('/api/members', {
+        const response = await fetch('/api/invites', {
             method: 'GET',
             credentials: 'include'
-          });
+        });
 
-          if(membersResponse.ok){
-            const membersData = await membersResponse.json();
-            members = membersData.members || [];
-          }
-        }catch(memberError){
-          console.error('Could not load member ranks:', memberError);
+        if(!response.ok){
+            invitesList.innerHTML =
+                '<div class="invites-empty">Could not load invites.</div>';
+            return;
         }
-      }
 
-      const rankByName = new Map(members.map(m => [m.display_name, m.rank]));
+        const data = await response.json();
 
-      invites.forEach(invite => {
-        invite.rank = rankByName.get(invite.display_name) || 'recruit';
-      });
-
-      renderInvites(invites);
+        renderInvites(data.invites || []);
 
     }catch(error){
-      console.error(error);
-      invitesList.innerHTML = '<div class="invites-empty">Could not connect to the server.</div>';
+        console.error(error);
+
+        invitesList.innerHTML =
+            '<div class="invites-empty">Could not connect to the server.</div>';
     }
-  }
+}
 
   /*
    * Render invites, newest at the bottom.
@@ -2745,69 +2751,96 @@
   /*
    * Send invite.
    */
-  async function handleSend(){
+async function handleSend(){
+
     if(!currentMember){
-      setInviteMessage('Log in to send an invite.', 'error');
-      sendBtn.blur();
-      openLoginModal();
-      return;
+        setInviteMessage(
+            'Log in to send an invite.',
+            'error'
+        );
+
+        sendBtn.blur();
+        openLoginModal();
+        return;
     }
 
     const value = inviteInput.value.trim();
+
     if(!value){
-      sendBtn.blur();
-      return;
-    }
+        setInviteMessage(
+            'Enter an invite first.',
+            'error'
+        );
 
-    const type = visibilityMode === 'members' ? 'members_only'
-      : visibilityMode === 'specify' ? 'specific_members'
-      : 'public';
-
-    let memberIds = [];
-
-    if(type === 'specific_members'){
-      memberIds = [...specifiedIds];
-
-      if(memberIds.length === 0){
-        setInviteMessage('Select at least one member.', 'error');
         sendBtn.blur();
         return;
-      }
     }
 
-    setInviteMessage('Sending\u2026');
+    const accessType =
+        visibilityMode === 'members'
+            ? 'members_only'
+            : 'public';
+
+
+    setInviteMessage('Sending…');
+
 
     try{
-      const response = await fetch('/api/invites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          invite_value: value,
-          access_type: type,
-          member_ids: memberIds
-        })
-      });
 
-      const data = await response.json();
+        const response = await fetch('/api/invites', {
+            method: 'POST',
 
-      if(!response.ok){
-        setInviteMessage(data.error || 'Could not send invite.', 'error');
-        sendBtn.blur();
-        return;
-      }
+            headers: {
+                'Content-Type': 'application/json'
+            },
 
-      inviteInput.value = '';
-      resetVisibility();
-      setInviteMessage('Invite sent.', 'success');
-      loadInvites();
+            credentials: 'include',
+
+            body: JSON.stringify({
+                invite_value: value,
+                access_type: accessType
+            })
+        });
+
+
+        const data = await response.json();
+
+
+        if(!response.ok){
+
+            setInviteMessage(
+                data.error || 'Could not send invite.',
+                'error'
+            );
+
+            sendBtn.blur();
+            return;
+        }
+
+
+        inviteInput.value = '';
+
+        resetVisibility();
+
+        setInviteMessage(
+            'Invite sent.',
+            'success'
+        );
+
+        await loadInvites();
 
     }catch(error){
-      console.error(error);
-      setInviteMessage('Could not connect to the server.', 'error');
-      sendBtn.blur();
+
+        console.error(error);
+
+        setInviteMessage(
+            'Could not connect to the server.',
+            'error'
+        );
+
+        sendBtn.blur();
     }
-  }
+}
 
   sendBtn.addEventListener('click', handleSend);
   inviteInput.addEventListener('keydown', e => {
@@ -2824,18 +2857,22 @@
     visOptionSpecify.classList.toggle('active', value === 'specify');
   }
 
-  function setVisLabel(){
-    if(visibilityMode === 'public'){ visLabel.textContent = 'Public'; return; }
-    if(visibilityMode === 'members'){ visLabel.textContent = 'Members Only'; return; }
-    visLabel.textContent = specifiedIds.size ? `Specify (${specifiedIds.size})` : 'Specify';
-  }
+function setVisLabel(){
 
-  function resetVisibility(){
+    if(visibilityMode === 'members'){
+        visLabel.textContent = 'Members Only';
+        return;
+    }
+
+    visLabel.textContent = 'Public';
+}
+
+function resetVisibility(){
     visibilityMode = 'public';
-    specifiedIds = new Set();
+
     setVisOptionActive('public');
     setVisLabel();
-  }
+}
 
   function openVisDropdown(){ visSelect.classList.add('open'); }
   function closeVisDropdown(){ visSelect.classList.remove('open'); }

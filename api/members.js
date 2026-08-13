@@ -27,7 +27,18 @@ module.exports = async (req, res) => {
         const { data: members, error } =
             await supabase
                 .from("members")
-                .select("id, display_name, rank")
+                .select(`
+                    id,
+                    username,
+                    display_name,
+                    rank,
+                    cryzen_profile,
+                    avatar,
+                    main_weapon,
+                    discord_username,
+                    cryzen_lvl,
+                    member_since
+                `)
                 .order("id", {
                     ascending: true
                 });
