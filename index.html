@@ -2748,5 +2748,104 @@ function resetVisibility(){
    */
   checkLogin();
 </script>
+
+<script>
+(function() {
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxe28MJFJ6PyDJqg0-DMT-RdFIUQcctcFrNOBzlVvCSX_pb0OoYztzWvN5mcHB7iPkP/exec";
+
+  // 1. Get or create a unique Visit ID for the current session
+  let visitId = sessionStorage.getItem('gs_visit_id');
+  if (!visitId) {
+    visitId = 'v_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+    sessionStorage.setItem('gs_visit_id', visitId);
+  }
+
+  // 2. Helper to send data via fetch
+  function sendData(payload) {
+    payload.visitId = visitId;
+    payload.pageUrl = window.location.href;
+
+    // text/plain prevents CORS preflight errors with Apps Script
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.error('Tracking Error:', err));
+  }
+
+  // 3. User-Agent Parsing Helpers
+  function getDeviceType() {
+    const ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'Tablet';
+    if (/Mobile|iPhone|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/i.test(ua)) return 'Mobile';
+    return 'Desktop';
+  }
+
+  function getBrowser() {
+    const ua = navigator.userAgent;
+    if (ua.includes("Firefox")) return "Firefox";
+    if (ua.includes("SamsungBrowser")) return "Samsung Internet";
+    if (ua.includes("Opera") || ua.includes("OPR")) return "Opera";
+    if (ua.includes("Trident")) return "Internet Explorer";
+    if (ua.includes("Edge") || ua.includes("Edg")) return "Edge";
+    if (ua.includes("Chrome")) return "Chrome";
+    if (ua.includes("Safari")) return "Safari";
+    return "Unknown";
+  }
+
+  function getOS() {
+    const platform = navigator.userAgentData?.platform || navigator.platform;
+    if (platform.includes("Win")) return "Windows";
+    if (platform.includes("Mac")) return "macOS";
+    if (platform.includes("Linux")) return "Linux";
+    if (/Android/i.test(navigator.userAgent)) return "Android";
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) return "iOS";
+    return "Unknown";
+  }
+
+  // 4. Record Visit Data
+  async function recordVisit() {
+    let geo = {};
+    try {
+      // Free IP & Location service
+      const res = await fetch('https://ipapi.co/json/');
+      if (res.ok) {
+        geo = await res.json();
+      }
+    } catch (e) {
+      console.warn("Could not fetch IP location");
+    }
+
+    sendData({
+      type: 'visit',
+      ip: geo.ip || 'Unknown',
+      country: geo.country_name || 'Unknown',
+      city: geo.city || 'Unknown',
+      browser: getBrowser(),
+      os: getOS(),
+      device: getDeviceType(),
+      screenRes: `${window.screen.width}x${window.screen.height}`,
+      referrer: document.referrer || 'Direct'
+    });
+  }
+
+  // 5. Track Custom Clicks (gs_tracker)
+  document.addEventListener('click', function(e) {
+    // Look for gs_tracker on clicked element or its closest parent
+    const target = e.target.closest('[gs_tracker]');
+    if (target) {
+      const trackerName = target.getAttribute('gs_tracker');
+      sendData({
+        type: 'activity',
+        trackerName: trackerName
+      });
+    }
+  });
+
+  // Run initial visit tracker
+  recordVisit();
+})();
+</script>
 </body>
 </html>
