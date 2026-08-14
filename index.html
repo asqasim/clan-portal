@@ -1662,10 +1662,10 @@
     </div>
 
     <nav class="site-nav">
-      <a class="nav-link" href="#roster" gs_tracker="Clicked Nav[Members]">Members</a>
-      <a class="nav-link" href="#invites" gs_tracker="Clicked Nav[Invites]>Invites</a>
+      <a class="nav-link" href="#roster">Members</a>
+      <a class="nav-link" href="#invites">Invites</a>
       <a class="nav-link" href="#events">Announcements</a>
-      <button type="button" class="nav-link" id="navRules" gs_tracker="Clicked Nav[Rules]>Rules</button>
+      <button type="button" class="nav-link" id="navRules">Rules</button>
     </nav>
 
     <div class="account-wrap" id="accountWrap">
@@ -1676,7 +1676,7 @@
       <div class="account-menu" id="accountMenu">
         <div class="account-menu-label">Signed in as</div>
         <div class="account-menu-user" id="accountMenuUser"></div>
-        <button class="account-logout" id="logoutBtn" type="button" gs_tracker="Logout-btn Clicked">Logout</button>
+        <button class="account-logout" id="logoutBtn" type="button">Logout</button>
       </div>
     </div>
   </div>
@@ -1688,8 +1688,8 @@
   <div class="hero-content">
     <h1 class="hero-title">Rime Wardens</h1>
     <div class="hero-buttons">
-      <a class="hero-btn hero-btn-apply" href="https://cryzen.io/center/clans/clan/R1ME" target="_blank" rel="noopener noreferrer" gs_tracker="Clan page at cryzen.io visited">Join at cryzen.io </a>
-      <a class="hero-btn hero-btn-discord" href="https://discord.com/users/1461663614988714096" target="_blank" rel="noopener noreferrer" gs_tracker="Discord link visited">Discord</a>
+      <a class="hero-btn hero-btn-apply" href="https://cryzen.io/center/clans/clan/R1ME" target="_blank" rel="noopener noreferrer">Join at cryzen.io </a>
+      <a class="hero-btn hero-btn-discord" href="https://discord.com/users/1461663614988714096" target="_blank" rel="noopener noreferrer">Discord</a>
     </div>
   </div>
 </section>
@@ -1775,7 +1775,7 @@
             <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="vis-dropdown" id="visDropdown" gs_tracker="vis-dropdown Clicked">
+        <div class="vis-dropdown" id="visDropdown">
           <div class="vis-option active" data-value="public">
             <span>Public</span><span class="vis-default-tag">(Default)</span>
           </div>
@@ -2750,423 +2750,102 @@ function resetVisibility(){
 </script>
 
 <script>
-
 (function() {
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxe28MJFJ6PyDJqg0-DMT-RdFIUQcctcFrNOBzlVvCSX_pb0OoYztzWvN5mcHB7iPkP/exec";
 
-    const SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbxe28MJFJ6PyDJqg0-DMT-RdFIUQcctcFrNOBzlVvCSX_pb0OoYztzWvN5mcHB7iPkP/exec";
+  // 1. Get or create a unique Visit ID for the current session
+  let visitId = sessionStorage.getItem('gs_visit_id');
+  if (!visitId) {
+    visitId = 'v_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+    sessionStorage.setItem('gs_visit_id', visitId);
+  }
 
+  // 2. Helper to send data via fetch
+  function sendData(payload) {
+    payload.visitId = visitId;
+    payload.pageUrl = window.location.href;
 
-    /*
-    ============================================================
-    VISIT ID
-    ============================================================
-    */
+    // text/plain prevents CORS preflight errors with Apps Script
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.error('Tracking Error:', err));
+  }
 
-    let visitId = sessionStorage.getItem("gs_visit_id");
+  // 3. User-Agent Parsing Helpers
+  function getDeviceType() {
+    const ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'Tablet';
+    if (/Mobile|iPhone|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/i.test(ua)) return 'Mobile';
+    return 'Desktop';
+  }
 
-    if (!visitId) {
+  function getBrowser() {
+    const ua = navigator.userAgent;
+    if (ua.includes("Firefox")) return "Firefox";
+    if (ua.includes("SamsungBrowser")) return "Samsung Internet";
+    if (ua.includes("Opera") || ua.includes("OPR")) return "Opera";
+    if (ua.includes("Trident")) return "Internet Explorer";
+    if (ua.includes("Edge") || ua.includes("Edg")) return "Edge";
+    if (ua.includes("Chrome")) return "Chrome";
+    if (ua.includes("Safari")) return "Safari";
+    return "Unknown";
+  }
 
-        visitId =
-            "v_" +
-            Math.random().toString(36).substring(2, 11) +
-            "_" +
-            Date.now();
+  function getOS() {
+    const platform = navigator.userAgentData?.platform || navigator.platform;
+    if (platform.includes("Win")) return "Windows";
+    if (platform.includes("Mac")) return "macOS";
+    if (platform.includes("Linux")) return "Linux";
+    if (/Android/i.test(navigator.userAgent)) return "Android";
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) return "iOS";
+    return "Unknown";
+  }
 
-        sessionStorage.setItem("gs_visit_id", visitId);
+  // 4. Record Visit Data
+  async function recordVisit() {
+    let geo = {};
+    try {
+      // Free IP & Location service
+      const res = await fetch('https://ipapi.co/json/');
+      if (res.ok) {
+        geo = await res.json();
+      }
+    } catch (e) {
+      console.warn("Could not fetch IP location");
     }
 
-
-    /*
-    ============================================================
-    SEND DATA TO GOOGLE APPS SCRIPT
-    ============================================================
-    */
-
-    function sendData(payload) {
-
-        payload.visitId = visitId;
-        payload.pageUrl = window.location.href;
-
-        fetch(SCRIPT_URL, {
-
-            method: "POST",
-
-            mode: "no-cors",
-
-            headers: {
-                "Content-Type": "text/plain"
-            },
-
-            body: JSON.stringify(payload)
-
-        }).catch(error => {
-
-            console.error("Tracking Error:", error);
-
-        });
-    }
-
-
-    /*
-    ============================================================
-    DEVICE
-    ============================================================
-    */
-
-    function getDeviceType() {
-
-        const ua = navigator.userAgent;
-
-        if (
-            /(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i
-            .test(ua)
-        ) {
-            return "Tablet";
-        }
-
-        if (
-            /Mobile|iPhone|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/i
-            .test(ua)
-        ) {
-            return "Mobile";
-        }
-
-        return "Desktop";
-    }
-
-
-    /*
-    ============================================================
-    BROWSER
-    ============================================================
-    */
-
-    function getBrowser() {
-
-        const ua = navigator.userAgent;
-
-        if (ua.includes("Firefox"))
-            return "Firefox";
-
-        if (ua.includes("SamsungBrowser"))
-            return "Samsung Internet";
-
-        if (ua.includes("Opera") || ua.includes("OPR"))
-            return "Opera";
-
-        if (ua.includes("Trident"))
-            return "Internet Explorer";
-
-        if (ua.includes("Edge") || ua.includes("Edg"))
-            return "Edge";
-
-        if (ua.includes("Chrome"))
-            return "Chrome";
-
-        if (ua.includes("Safari"))
-            return "Safari";
-
-        return "Unknown";
-    }
-
-
-    /*
-    ============================================================
-    OS
-    ============================================================
-    */
-
-    function getOS() {
-
-        const platform =
-            navigator.userAgentData?.platform ||
-            navigator.platform;
-
-        if (platform.includes("Win"))
-            return "Windows";
-
-        if (platform.includes("Mac"))
-            return "macOS";
-
-        if (platform.includes("Linux"))
-            return "Linux";
-
-        if (/Android/i.test(navigator.userAgent))
-            return "Android";
-
-        if (/iPhone|iPad|iPod/i.test(navigator.userAgent))
-            return "iOS";
-
-        return "Unknown";
-    }
-
-
-    /*
-    ============================================================
-    IP + LOCATION
-    ============================================================
-    */
-
-    async function getGeoData() {
-
-        /*
-        ----------------------------------------
-        Service 1: ipapi.co
-        ----------------------------------------
-        */
-
-        try {
-
-            const response =
-                await fetch("https://ipapi.co/json/");
-
-            if (response.ok) {
-
-                const data = await response.json();
-
-                if (data.ip) {
-
-                    return {
-                        ip: data.ip || "Unknown",
-                        country: data.country_name || "Unknown",
-                        city: data.city || "Unknown"
-                    };
-
-                }
-
-            }
-
-        } catch (error) {
-
-            console.warn("ipapi.co failed");
-
-        }
-
-
-        /*
-        ----------------------------------------
-        Service 2: ipwho.is
-        ----------------------------------------
-        */
-
-        try {
-
-            const response =
-                await fetch("https://ipwho.is/");
-
-            if (response.ok) {
-
-                const data = await response.json();
-
-                if (data.success && data.ip) {
-
-                    return {
-                        ip: data.ip || "Unknown",
-                        country: data.country || "Unknown",
-                        city: data.city || "Unknown"
-                    };
-
-                }
-
-            }
-
-        } catch (error) {
-
-            console.warn("ipwho.is failed");
-
-        }
-
-
-        /*
-        ----------------------------------------
-        Service 3: ip-api.com
-        ----------------------------------------
-        */
-
-        try {
-
-            const response =
-                await fetch(
-                    "https://ip-api.com/json/?fields=status,country,city,query"
-                );
-
-            if (response.ok) {
-
-                const data = await response.json();
-
-                if (data.status === "success" && data.query) {
-
-                    return {
-                        ip: data.query || "Unknown",
-                        country: data.country || "Unknown",
-                        city: data.city || "Unknown"
-                    };
-
-                }
-
-            }
-
-        } catch (error) {
-
-            console.warn("ip-api.com failed");
-
-        }
-
-
-        /*
-        ----------------------------------------
-        Everything failed
-        ----------------------------------------
-        */
-
-        return {
-            ip: "Unknown",
-            country: "Unknown",
-            city: "Unknown"
-        };
-    }
-
-
-    /*
-    ============================================================
-    RECORD VISIT
-    ============================================================
-    */
-
-    async function recordVisit() {
-
-        // Start with Unknown.
-        // This means visitor registration doesn't depend
-        // on the IP services working.
-
-        let geo = {
-            ip: "Unknown",
-            country: "Unknown",
-            city: "Unknown"
-        };
-
-
-        // Try to obtain IP/location.
-
-        try {
-
-            geo = await getGeoData();
-
-        } catch (error) {
-
-            console.warn("All geo services failed");
-
-        }
-
-
-        // Send visitor regardless of geo result.
-
-        sendData({
-
-            type: "visit",
-
-            ip: geo.ip,
-
-            country: geo.country,
-
-            city: geo.city,
-
-            browser: getBrowser(),
-
-            os: getOS(),
-
-            device: getDeviceType(),
-
-            screenRes:
-                `${window.screen.width}x${window.screen.height}`,
-
-            referrer:
-                document.referrer || "Direct"
-        });
-
-    }
-
-
-    /*
-    ============================================================
-    CLICK ANALYTICS
-    ============================================================
-    */
-
-    document.addEventListener("click", function(event) {
-
-        const target =
-            event.target.closest("[gs_tracker]");
-
-        if (!target)
-            return;
-
-
-        const trackerName =
-            target.getAttribute("gs_tracker");
-
-
-        sendData({
-
-            type: "activity",
-
-            trackerName: trackerName
-
-        });
-
+    sendData({
+      type: 'visit',
+      ip: geo.ip || 'Unknown',
+      country: geo.country_name || 'Unknown',
+      city: geo.city || 'Unknown',
+      browser: getBrowser(),
+      os: getOS(),
+      device: getDeviceType(),
+      screenRes: `${window.screen.width}x${window.screen.height}`,
+      referrer: document.referrer || 'Direct'
     });
+  }
 
+  // 5. Track Custom Clicks (gs_tracker)
+  document.addEventListener('click', function(e) {
+    // Look for gs_tracker on clicked element or its closest parent
+    const target = e.target.closest('[gs_tracker]');
+    if (target) {
+      const trackerName = target.getAttribute('gs_tracker');
+      sendData({
+        type: 'activity',
+        trackerName: trackerName
+      });
+    }
+  });
 
-    /*
-    ============================================================
-    MODAL
-    ============================================================
-    */
-
-    const modal =
-        document.getElementById("modal");
-
-
-    document.addEventListener("click", function(event) {
-
-        const tracker =
-            event.target.closest("[gs_tracker]");
-
-        if (!tracker)
-            return;
-
-
-        const name =
-            tracker.getAttribute("gs_tracker");
-
-
-        if (name === "open_modal") {
-
-            modal.style.display = "flex";
-
-        }
-
-
-        if (name === "close_modal") {
-
-            modal.style.display = "none";
-
-        }
-
-    });
-
-
-    /*
-    ============================================================
-    START VISITOR TRACKING
-    ============================================================
-    */
-
-    recordVisit();
-
+  // Run initial visit tracker
+  recordVisit();
 })();
-
 </script>
 </body>
 </html>
