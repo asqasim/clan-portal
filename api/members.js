@@ -37,7 +37,8 @@ module.exports = async (req, res) => {
                     main_weapon,
                     discord_username,
                     cryzen_lvl,
-                    member_since
+                    member_since,
+		    country
                 `)
                 .order("id", {
                     ascending: true

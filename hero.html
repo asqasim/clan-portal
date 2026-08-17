@@ -1,0 +1,216 @@
+<!-- hero.html — hero banner + theme cards. Include this fragment inside index.html's #hero-mount. -->
+<style>
+  /* ---------- hero ---------- */
+
+  .hero-section{
+    
+    position:relative;
+    z-index:2;
+    width:100%;
+    min-height:82vh;
+    display:flex;
+    align-items:center;
+    background-color:var(--panel);
+    background-image:
+      linear-gradient(90deg, rgba(3,7,11,0.92) 0%, rgba(3,7,11,0.62) 42%, rgba(3,7,11,0.22) 100%),
+      url('media/main_banner.png');
+    background-size:cover;
+    background-position:top;
+    border-bottom:1px solid var(--outline);
+    overflow:hidden;
+  }
+
+  .hero-content{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 1.5em;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:1.4em;
+  }
+
+  .hero-title{
+    font-size:clamp(2.1em, 6vw, 3.6em);
+    font-weight:800;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--text);
+    text-align:left;
+    text-shadow:0 0 26px rgba(111,195,232,0.5), 0 4px 14px rgba(0,0,0,0.75);
+  }
+
+  .hero-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.9em;
+  }
+  .hero-btn{
+    padding:0.8em 1.7em;
+    font-family:'Montserrat',sans-serif;
+    font-size:0.78em;
+    font-weight:700;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    text-decoration:none;
+    cursor:pointer;
+    border:1px solid var(--outline);
+    transition:border-color .2s ease, background-color .2s ease, color .2s ease, transform .2s ease;
+    clip-path:polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .hero-btn:hover{
+    transform:translateY(-2px);
+  }
+  .hero-btn-apply{
+    background:var(--ice-bright);
+    border-color:var(--ice-bright);
+    color:#04141c;
+  }
+  .hero-btn-apply:hover{
+    background:#fff;
+    border-color:#fff;
+  }
+  .hero-btn-discord{
+    background:rgba(111,195,232,0.08);
+    border-color:rgba(111,195,232,0.4);
+    color:var(--ice-bright);
+  }
+  .hero-btn-discord:hover{
+    background:rgba(111,195,232,0.18);
+    border-color:var(--ice-bright);
+  }
+
+  /* ---------- theme cards ---------- */
+
+  .theme-section{
+    position:relative;
+    z-index:2;
+    max-width:1080px;
+    margin:0 auto;
+    padding:4.5vh 1.5em 1vh;
+  }
+
+  .theme-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1em;
+  }
+  @media (max-width:760px){
+    .theme-grid{ grid-template-columns:1fr; }
+  }
+
+  .theme-card{
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    padding:1.7em 1.3em 1.5em;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:0.75em;
+    transition:outline-color .2s ease, transform .2s ease;
+  }
+  .theme-card:hover{
+    outline-color:var(--ice);
+    transform:translateY(-3px);
+  }
+
+  .theme-icon-wrap{
+    width:42px;
+    height:42px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .theme-icon-img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    filter:drop-shadow(0 0 8px rgba(111,195,232,0.4));
+  }
+  .theme-icon-fallback{
+    width:100%;
+    height:100%;
+    filter:drop-shadow(0 0 8px rgba(111,195,232,0.4));
+  }
+
+  .theme-card-title{
+    font-size:0.86em;
+    font-weight:800;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ice-bright);
+  }
+  .theme-card-text{
+    font-size:0.76em;
+    line-height:1.55;
+    color:var(--text-dim);
+  }
+</style>
+
+<section class="hero-section">
+  <div class="hero-content">
+    <h1 class="hero-title">Rime Wardens</h1>
+    <div class="hero-buttons">
+      <a class="hero-btn hero-btn-apply" href="https://cryzen.io/center/clans/clan/R1ME" target="_blank" rel="noopener noreferrer" gs_tracker="Nav apply Link Clicked">Join at cryzen.io </a>
+      <a class="hero-btn hero-btn-discord" href="https://discord.com/users/1461663614988714096" target="_blank" rel="noopener noreferrer" gs_tracker="Nav discord Link Clicked">Discord</a>
+    </div>
+  </div>
+</section>
+
+<section class="theme-section">
+  <div class="theme-grid">
+
+    <div class="theme-card">
+      <span class="theme-icon-wrap">
+        <img class="theme-icon-img" src="media/theme_icon_precision.png" alt=""
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <svg class="theme-icon-fallback" style="display:none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="8" stroke="#cdf2ff" stroke-width="1.4"/>
+          <circle cx="12" cy="12" r="1.4" fill="#cdf2ff"/>
+          <line x1="12" y1="2" x2="12" y2="6" stroke="#cdf2ff" stroke-width="1.4"/>
+          <line x1="12" y1="18" x2="12" y2="22" stroke="#cdf2ff" stroke-width="1.4"/>
+          <line x1="2" y1="12" x2="6" y2="12" stroke="#cdf2ff" stroke-width="1.4"/>
+          <line x1="18" y1="12" x2="22" y2="12" stroke="#cdf2ff" stroke-width="1.4"/>
+        </svg>
+      </span>
+      <div class="theme-card-title">Precision Plays</div>
+      <div class="theme-card-text">Every round is calculated — we out-think before we out-shoot.</div>
+    </div>
+
+    <div class="theme-card">
+      <span class="theme-icon-wrap">
+        <img class="theme-icon-img" src="media/theme_icon_unity.png" alt=""
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <svg class="theme-icon-fallback" style="display:none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L20 5.5V11C20 16 16.7 20.2 12 22C7.3 20.2 4 16 4 11V5.5L12 2Z" stroke="#cdf2ff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div class="theme-card-title">One Clan, One Shield</div>
+      <div class="theme-card-text">We watch each other's backs, in-game and out.</div>
+    </div>
+
+    <div class="theme-card">
+      <span class="theme-icon-wrap">
+        <img class="theme-icon-img" src="media/theme_icon_frost.png" alt=""
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <svg class="theme-icon-fallback" style="display:none" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#cdf2ff" stroke-width="1.4" stroke-linecap="round">
+            <line x1="12" y1="2" x2="12" y2="22"/>
+            <line x1="4.2" y1="6" x2="19.8" y2="18"/>
+            <line x1="19.8" y1="6" x2="4.2" y2="18"/>
+          </g>
+        </svg>
+      </span>
+      <div class="theme-card-title">Ice-Cold Focus</div>
+      <div class="theme-card-text">Steady aim, calm calls — even when the game's on the line.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- no component-specific JS needed for the hero / theme cards -->

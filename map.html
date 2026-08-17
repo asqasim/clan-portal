@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roster & Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* same tokens as the main site — remove this block if you're pasting
+       this section into a page that already defines them */
+    --bg-0:#050a10;
+    --bg-1:#0a131c;
+    --panel:#0c1720;
+    --outline:#26404d;
+    --ice:#6fc3e8;
+    --ice-bright:#cdf2ff;
+    --text:#e7f4fb;
+    --text-dim:#7f97a3;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html,body{ height:100%; overflow:hidden; background:var(--bg-0); font-family:'Montserrat',sans-serif; color:var(--text); }
+
+  body{
+    background:
+      radial-gradient(60% 45% at 18% 8%, rgba(111,195,232,0.10), transparent 60%),
+      radial-gradient(50% 40% at 85% 92%, rgba(111,195,232,0.08), transparent 60%),
+      linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  }
+
+  .page-wrap{ position:relative; width:100%; height:100%; }
+
+  .section-label{
+    font-size:0.68em;
+    font-weight:700;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-bottom:0.7em;
+    padding-left:0.1em;
+  }
+
+  /* ---- map (fullscreen) ---- */
+
+  .map-wrap{ position:fixed; inset:0; }
+
+  .map-panel{
+    position:absolute;
+    inset:0;
+    background-color:var(--panel);
+    overflow:hidden;
+  }
+
+  #worldMap{
+    display:block;
+    width:100%;
+    height:100%;
+    cursor:grab;
+  }
+  #worldMap:active{ cursor:grabbing; }
+
+  .country-path{
+    fill:var(--bg-1);
+    stroke:var(--outline);
+    stroke-width:0.6;
+    vector-effect:non-scaling-stroke;
+    transition:fill .15s ease, stroke .15s ease;
+  }
+  .country-path.has-members{ fill:rgba(111,195,232,0.08); }
+  .country-path:hover{ fill:rgba(111,195,232,0.18); stroke:var(--ice-bright); }
+
+  .member-dot{
+    fill:var(--ice-bright);
+    stroke:var(--bg-0);
+    stroke-width:0.6;
+    filter:drop-shadow(0 0 3px rgba(111,195,232,0.9));
+    cursor:pointer;
+  }
+
+  .map-tooltip{
+    position:absolute;
+    left:0; top:0;
+    z-index:15;
+    pointer-events:none;
+    padding:0.55em 0.75em;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    font-size:0.7em;
+    line-height:1.5;
+    color:var(--text);
+    white-space:normal;
+    max-width:230px;
+    opacity:0;
+    visibility:hidden;
+    transform:translate(-50%,-100%) translateY(-8px);
+    transition:opacity .15s ease, transform .15s ease, visibility 0s linear .15s;
+  }
+  .map-tooltip.show{
+    opacity:1;
+    visibility:visible;
+    transform:translate(-50%,-100%) translateY(-12px);
+    transition:opacity .15s ease, transform .15s ease, visibility 0s linear 0s;
+  }
+  .map-tooltip b{ color:var(--ice-bright); }
+
+  .tooltip-head{
+    display:flex;
+    align-items:center;
+    gap:0.45em;
+  }
+  .tooltip-head + .tooltip-members{ margin-top:0.45em; }
+
+  .tooltip-flag{
+    width:20px;
+    height:14px;
+    flex-shrink:0;
+    object-fit:cover;
+    box-shadow:0 0 0 1px var(--outline);
+  }
+  .tooltip-flag-fallback{
+    width:20px;
+    height:14px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 0 0 1px var(--outline);
+    background:var(--bg-1);
+    color:var(--text-dim);
+    font-size:0.6em;
+    font-weight:700;
+  }
+
+  .tooltip-avatar{
+    width:20px;
+    height:20px;
+    flex-shrink:0;
+    border-radius:50%;
+    object-fit:cover;
+    box-shadow:0 0 0 1px var(--outline);
+    background:var(--bg-1);
+  }
+
+  .tooltip-members{
+    display:flex;
+    flex-direction:column;
+    gap:0.32em;
+    max-height:190px;
+    overflow-y:auto;
+    padding-right:2px;
+  }
+
+  .tooltip-member{
+    display:flex;
+    align-items:center;
+    gap:0.4em;
+    white-space:nowrap;
+  }
+  .tooltip-member span{ white-space:nowrap; }
+  .tooltip-member-rank{
+    margin-left:auto;
+    color:var(--text-dim);
+    font-size:0.92em;
+    padding-left:0.6em;
+  }
+
+  .map-hint{
+    position:fixed;
+    left:1.2em;
+    bottom:1.2em;
+    z-index:10;
+    font-size:0.6em;
+    letter-spacing:0.06em;
+    color:var(--text-dim);
+    padding:0.5em 0.7em;
+    background-color:rgba(12,23,32,0.75);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    backdrop-filter:blur(6px);
+  }
+
+  /* ---- compact rank table (floating over map) ---- */
+
+  .roster-wrap{
+    position:fixed;
+    top:1.2em;
+    right:1.2em;
+    z-index:20;
+    width:280px;
+    max-width:calc(100vw - 2.4em);
+    max-height:calc(100vh - 2.4em);
+    display:flex;
+    flex-direction:column;
+  }
+  .roster-wrap .section-label{ flex-shrink:0; }
+
+  .rank-table{
+    background-color:rgba(12,23,32,0.8);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    backdrop-filter:blur(10px);
+    overflow-y:auto;
+  }
+
+  .rank-row{
+    display:flex;
+    align-items:center;
+    gap:0.55em;
+    padding:0.32em 0.55em;
+    border-bottom:1px solid rgba(111,195,232,0.08);
+    transition:background-color .15s ease;
+  }
+  .rank-row:last-child{ border-bottom:none; }
+  .rank-row:hover{ background:rgba(111,195,232,0.06); }
+
+  @keyframes rowHighlight{
+    0%{ background:rgba(111,195,232,0.35); }
+    100%{ background:rgba(111,195,232,0); }
+  }
+  .rank-row.row-highlight{ animation:rowHighlight 1.4s ease-out; }
+
+  .rank-avatar{
+    width:26px;
+    height:26px;
+    flex-shrink:0;
+    border-radius:50%;
+    object-fit:cover;
+    box-shadow:0 0 0 1px var(--outline);
+    background:var(--bg-1);
+  }
+
+  .rank-flag{
+    width:22px;
+    height:15px;
+    flex-shrink:0;
+    object-fit:cover;
+    box-shadow:0 0 0 1px var(--outline);
+  }
+  .rank-flag-fallback{
+    width:22px;
+    height:15px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 0 0 1px var(--outline);
+    background:var(--bg-1);
+    color:var(--text-dim);
+    font-size:0.55em;
+    font-weight:700;
+  }
+
+  .rank-id{
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    min-width:0;
+    flex:1;
+  }
+
+  .rank-name{
+    font-size:0.75em;
+    font-weight:700;
+    letter-spacing:0.01em;
+    color:var(--text);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .rank-tag{
+    font-size:0.54em;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ice);
+  }
+
+  .rank-status{
+    padding:0.9em 0.7em;
+    font-size:0.72em;
+    color:var(--text-dim);
+  }
+
+</style>
+</head>
+<body>
+  <div class="page-wrap">
+
+    <div class="map-wrap">
+      <div class="map-panel">
+        <svg id="worldMap" viewBox="0 0 960 520" preserveAspectRatio="xMidYMid slice"></svg>
+        <div class="map-tooltip" id="mapTooltip"></div>
+      </div>
+      <p class="map-hint">Scroll / pinch to zoom &middot; drag to pan</p>
+    </div>
+
+    <div class="roster-wrap">
+      <p class="section-label">Roster</p>
+      <div class="rank-table" id="rankTable">
+        <div class="rank-status" id="status">Loading members&hellip;</div>
+      </div>
+    </div>
+
+  </div>
+
+<!-- D3 + topojson-client: draw real country boundaries (Natural Earth data,
+     public domain) and turn the topology into plain GeoJSON we can plot. -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+
+<script>
+  const tableEl   = document.getElementById('rankTable');
+  const statusEl  = document.getElementById('status');
+  const tooltipEl = document.getElementById('mapTooltip');
+
+  /* ----------------------------------------------------------------
+     Country name -> ISO 3166-1 alpha-2 code, embedded directly so the
+     page doesn't need a runtime fetch to flagcdn's codes.json.
+     Flag images themselves still load from flagcdn.com (free, no key).
+  ---------------------------------------------------------------- */
+  const COUNTRY_CODES = {"afghanistan":"af","albania":"al","algeria":"dz","american samoa":"as","andorra":"ad","angola":"ao","anguilla":"ai","antarctica":"aq","antigua and barbuda":"ag","arab republic of egypt":"eg","argentina":"ar","argentine republic":"ar","armenia":"am","aruba":"aw","australia":"au","austria":"at","azerbaijan":"az","bahamas":"bs","bahrain":"bh","bangladesh":"bd","barbados":"bb","belarus":"by","belgium":"be","belize":"bz","benin":"bj","bermuda":"bm","bhutan":"bt","bolivarian republic of venezuela":"ve","bolivia":"bo","bolivia, plurinational state of":"bo","bonaire, sint eustatius and saba":"bq","bosnia and herzegovina":"ba","botswana":"bw","bouvet island":"bv","brazil":"br","british indian ocean territory":"io","british virgin islands":"vg","brunei darussalam":"bn","bulgaria":"bg","burkina faso":"bf","burundi":"bi","cabo verde":"cv","cambodia":"kh","cameroon":"cm","canada":"ca","cayman islands":"ky","central african republic":"cf","chad":"td","chile":"cl","china":"cn","christmas island":"cx","cocos (keeling) islands":"cc","colombia":"co","commonwealth of dominica":"dm","commonwealth of the bahamas":"bs","commonwealth of the northern mariana islands":"mp","comoros":"km","congo":"cg","congo, the democratic republic of the":"cd","cook islands":"ck","costa rica":"cr","croatia":"hr","cuba":"cu","curaçao":"cw","cyprus":"cy","czech republic":"cz","czechia":"cz","côte d'ivoire":"ci","democratic people's republic of korea":"kp","democratic republic of sao tome and principe":"st","democratic republic of timor-leste":"tl","democratic socialist republic of sri lanka":"lk","denmark":"dk","djibouti":"dj","dominica":"dm","dominican republic":"do","eastern republic of uruguay":"uy","ecuador":"ec","egypt":"eg","el salvador":"sv","equatorial guinea":"gq","eritrea":"er","estonia":"ee","eswatini":"sz","ethiopia":"et","falkland islands (malvinas)":"fk","faroe islands":"fo","federal democratic republic of ethiopia":"et","federal democratic republic of nepal":"np","federal republic of germany":"de","federal republic of nigeria":"ng","federal republic of somalia":"so","federated states of micronesia":"fm","federative republic of brazil":"br","fiji":"fj","finland":"fi","france":"fr","french guiana":"gf","french polynesia":"pf","french republic":"fr","french southern territories":"tf","gabon":"ga","gabonese republic":"ga","gambia":"gm","georgia":"ge","germany":"de","ghana":"gh","gibraltar":"gi","grand duchy of luxembourg":"lu","greece":"gr","greenland":"gl","grenada":"gd","guadeloupe":"gp","guam":"gu","guatemala":"gt","guernsey":"gg","guinea":"gn","guinea-bissau":"gw","guyana":"gy","haiti":"ht","hashemite kingdom of jordan":"jo","heard island and mcdonald islands":"hm","hellenic republic":"gr","holy see (vatican city state)":"va","honduras":"hn","hong kong":"hk","hong kong special administrative region of china":"hk","hungary":"hu","iceland":"is","independent state of papua new guinea":"pg","independent state of samoa":"ws","india":"in","indonesia":"id","iran":"ir","iran, islamic republic of":"ir","iraq":"iq","ireland":"ie","islamic republic of afghanistan":"af","islamic republic of iran":"ir","islamic republic of mauritania":"mr","islamic republic of pakistan":"pk","isle of man":"im","israel":"il","italian republic":"it","italy":"it","jamaica":"jm","japan":"jp","jersey":"je","jordan":"jo","kazakhstan":"kz","kenya":"ke","kingdom of bahrain":"bh","kingdom of belgium":"be","kingdom of bhutan":"bt","kingdom of cambodia":"kh","kingdom of denmark":"dk","kingdom of eswatini":"sz","kingdom of lesotho":"ls","kingdom of morocco":"ma","kingdom of norway":"no","kingdom of saudi arabia":"sa","kingdom of spain":"es","kingdom of sweden":"se","kingdom of thailand":"th","kingdom of the netherlands":"nl","kingdom of tonga":"to","kiribati":"ki","korea, democratic people's republic of":"kp","korea, republic of":"kr","kuwait":"kw","kyrgyz republic":"kg","kyrgyzstan":"kg","lao people's democratic republic":"la","laos":"la","latvia":"lv","lebanese republic":"lb","lebanon":"lb","lesotho":"ls","liberia":"lr","libya":"ly","liechtenstein":"li","lithuania":"lt","luxembourg":"lu","macao":"mo","macao special administrative region of china":"mo","madagascar":"mg","malawi":"mw","malaysia":"my","maldives":"mv","mali":"ml","malta":"mt","marshall islands":"mh","martinique":"mq","mauritania":"mr","mauritius":"mu","mayotte":"yt","mexico":"mx","micronesia, federated states of":"fm","moldova":"md","moldova, republic of":"md","monaco":"mc","mongolia":"mn","montenegro":"me","montserrat":"ms","morocco":"ma","mozambique":"mz","myanmar":"mm","namibia":"na","nauru":"nr","nepal":"np","netherlands":"nl","new caledonia":"nc","new zealand":"nz","nicaragua":"ni","niger":"ne","nigeria":"ng","niue":"nu","norfolk island":"nf","north korea":"kp","north macedonia":"mk","northern mariana islands":"mp","norway":"no","oman":"om","pakistan":"pk","palau":"pw","palestine, state of":"ps","panama":"pa","papua new guinea":"pg","paraguay":"py","people's democratic republic of algeria":"dz","people's republic of bangladesh":"bd","people's republic of china":"cn","peru":"pe","philippines":"ph","pitcairn":"pn","plurinational state of bolivia":"bo","poland":"pl","portugal":"pt","portuguese republic":"pt","principality of andorra":"ad","principality of liechtenstein":"li","principality of monaco":"mc","puerto rico":"pr","qatar":"qa","republic of albania":"al","republic of angola":"ao","republic of armenia":"am","republic of austria":"at","republic of azerbaijan":"az","republic of belarus":"by","republic of benin":"bj","republic of bosnia and herzegovina":"ba","republic of botswana":"bw","republic of bulgaria":"bg","republic of burundi":"bi","republic of cabo verde":"cv","republic of cameroon":"cm","republic of chad":"td","republic of chile":"cl","republic of colombia":"co","republic of costa rica":"cr","republic of croatia":"hr","republic of cuba":"cu","republic of cyprus":"cy","republic of côte d'ivoire":"ci","republic of djibouti":"dj","republic of ecuador":"ec","republic of el salvador":"sv","republic of equatorial guinea":"gq","republic of estonia":"ee","republic of fiji":"fj","republic of finland":"fi","republic of ghana":"gh","republic of guatemala":"gt","republic of guinea":"gn","republic of guinea-bissau":"gw","republic of guyana":"gy","republic of haiti":"ht","republic of honduras":"hn","republic of iceland":"is","republic of india":"in","republic of indonesia":"id","republic of iraq":"iq","republic of kazakhstan":"kz","republic of kenya":"ke","republic of kiribati":"ki","republic of latvia":"lv","republic of liberia":"lr","republic of lithuania":"lt","republic of madagascar":"mg","republic of malawi":"mw","republic of maldives":"mv","republic of mali":"ml","republic of malta":"mt","republic of mauritius":"mu","republic of moldova":"md","republic of mozambique":"mz","republic of myanmar":"mm","republic of namibia":"na","republic of nauru":"nr","republic of nicaragua":"ni","republic of north macedonia":"mk","republic of palau":"pw","republic of panama":"pa","republic of paraguay":"py","republic of peru":"pe","republic of poland":"pl","republic of san marino":"sm","republic of senegal":"sn","republic of serbia":"rs","republic of seychelles":"sc","republic of sierra leone":"sl","republic of singapore":"sg","republic of slovenia":"si","republic of south africa":"za","republic of south sudan":"ss","republic of suriname":"sr","republic of tajikistan":"tj","republic of the congo":"cg","republic of the gambia":"gm","republic of the marshall islands":"mh","republic of the niger":"ne","republic of the philippines":"ph","republic of the sudan":"sd","republic of trinidad and tobago":"tt","republic of tunisia":"tn","republic of türkiye":"tr","republic of uganda":"ug","republic of uzbekistan":"uz","republic of vanuatu":"vu","republic of yemen":"ye","republic of zambia":"zm","republic of zimbabwe":"zw","romania":"ro","russian federation":"ru","rwanda":"rw","rwandese republic":"rw","réunion":"re","saint barthélemy":"bl","saint helena, ascension and tristan da cunha":"sh","saint kitts and nevis":"kn","saint lucia":"lc","saint martin (french part)":"mf","saint pierre and miquelon":"pm","saint vincent and the grenadines":"vc","samoa":"ws","san marino":"sm","sao tome and principe":"st","saudi arabia":"sa","senegal":"sn","serbia":"rs","seychelles":"sc","sierra leone":"sl","singapore":"sg","sint maarten (dutch part)":"sx","slovak republic":"sk","slovakia":"sk","slovenia":"si","socialist republic of viet nam":"vn","solomon islands":"sb","somalia":"so","south africa":"za","south georgia and the south sandwich islands":"gs","south korea":"kr","south sudan":"ss","spain":"es","sri lanka":"lk","state of israel":"il","state of kuwait":"kw","state of qatar":"qa","sudan":"sd","sultanate of oman":"om","suriname":"sr","svalbard and jan mayen":"sj","sweden":"se","swiss confederation":"ch","switzerland":"ch","syria":"sy","syrian arab republic":"sy","taiwan":"tw","taiwan, province of china":"tw","tajikistan":"tj","tanzania":"tz","tanzania, united republic of":"tz","thailand":"th","the state of eritrea":"er","the state of palestine":"ps","timor-leste":"tl","togo":"tg","togolese republic":"tg","tokelau":"tk","tonga":"to","trinidad and tobago":"tt","tunisia":"tn","turkmenistan":"tm","turks and caicos islands":"tc","tuvalu":"tv","türkiye":"tr","uganda":"ug","ukraine":"ua","union of the comoros":"km","united arab emirates":"ae","united kingdom":"gb","united kingdom of great britain and northern ireland":"gb","united mexican states":"mx","united republic of tanzania":"tz","united states":"us","united states minor outlying islands":"um","united states of america":"us","uruguay":"uy","uzbekistan":"uz","vanuatu":"vu","venezuela":"ve","venezuela, bolivarian republic of":"ve","viet nam":"vn","vietnam":"vn","virgin islands of the united states":"vi","virgin islands, british":"vg","virgin islands, u.s.":"vi","wallis and futuna":"wf","western sahara":"eh","yemen":"ye","zambia":"zm","zimbabwe":"zw","åland islands":"ax"};
+
+  // small overlay for common informal/short names that don't appear above
+  const ALIASES = {
+    'russia':'ru','uk':'gb','usa':'us','uae':'ae',
+    'ivory coast':'ci',"cote d'ivoire":'ci',
+    'macedonia':'mk','swaziland':'sz','cape verde':'cv',
+    'brunei':'bn','burma':'mm','north korea':'kp','south korea':'kr'
+  };
+  const NAME_TO_CODE = Object.assign({}, COUNTRY_CODES, ALIASES);
+
+  // alpha-2 -> ISO 3166-1 numeric (zero-padded), used to match countries
+  // against the ids in the world-atlas topojson boundary data.
+  const ALPHA2_TO_NUMERIC = {"ad":"020","ae":"784","af":"004","ag":"028","ai":"660","al":"008","am":"051","ao":"024","aq":"010","ar":"032","as":"016","at":"040","au":"036","aw":"533","ax":"248","az":"031","ba":"070","bb":"052","bd":"050","be":"056","bf":"854","bg":"100","bh":"048","bi":"108","bj":"204","bl":"652","bm":"060","bn":"096","bo":"068","bq":"535","br":"076","bs":"044","bt":"064","bv":"074","bw":"072","by":"112","bz":"084","ca":"124","cc":"166","cd":"180","cf":"140","cg":"178","ch":"756","ci":"384","ck":"184","cl":"152","cm":"120","cn":"156","co":"170","cr":"188","cu":"192","cv":"132","cw":"531","cx":"162","cy":"196","cz":"203","de":"276","dj":"262","dk":"208","dm":"212","do":"214","dz":"012","ec":"218","ee":"233","eg":"818","eh":"732","er":"232","es":"724","et":"231","fi":"246","fj":"242","fk":"238","fm":"583","fo":"234","fr":"250","ga":"266","gb":"826","gd":"308","ge":"268","gf":"254","gg":"831","gh":"288","gi":"292","gl":"304","gm":"270","gn":"324","gp":"312","gq":"226","gr":"300","gs":"239","gt":"320","gu":"316","gw":"624","gy":"328","hk":"344","hm":"334","hn":"340","hr":"191","ht":"332","hu":"348","id":"360","ie":"372","il":"376","im":"833","in":"356","io":"086","iq":"368","ir":"364","is":"352","it":"380","je":"832","jm":"388","jo":"400","jp":"392","ke":"404","kg":"417","kh":"116","ki":"296","km":"174","kn":"659","kp":"408","kr":"410","kw":"414","ky":"136","kz":"398","la":"418","lb":"422","lc":"662","li":"438","lk":"144","lr":"430","ls":"426","lt":"440","lu":"442","lv":"428","ly":"434","ma":"504","mc":"492","md":"498","me":"499","mf":"663","mg":"450","mh":"584","mk":"807","ml":"466","mm":"104","mn":"496","mo":"446","mp":"580","mq":"474","mr":"478","ms":"500","mt":"470","mu":"480","mv":"462","mw":"454","mx":"484","my":"458","mz":"508","na":"516","nc":"540","ne":"562","nf":"574","ng":"566","ni":"558","nl":"528","no":"578","np":"524","nr":"520","nu":"570","nz":"554","om":"512","pa":"591","pe":"604","pf":"258","pg":"598","ph":"608","pk":"586","pl":"616","pm":"666","pn":"612","pr":"630","ps":"275","pt":"620","pw":"585","py":"600","qa":"634","re":"638","ro":"642","rs":"688","ru":"643","rw":"646","sa":"682","sb":"090","sc":"690","sd":"729","se":"752","sg":"702","sh":"654","si":"705","sj":"744","sk":"703","sl":"694","sm":"674","sn":"686","so":"706","sr":"740","ss":"728","st":"678","sv":"222","sx":"534","sy":"760","sz":"748","tc":"796","td":"148","tf":"260","tg":"768","th":"764","tj":"762","tk":"772","tl":"626","tm":"795","tn":"788","to":"776","tr":"792","tt":"780","tv":"798","tw":"158","tz":"834","ua":"804","ug":"800","um":"581","us":"840","uy":"858","uz":"860","va":"336","vc":"670","ve":"862","vg":"092","vi":"850","vn":"704","vu":"548","wf":"876","ws":"882","ye":"887","yt":"175","za":"710","zm":"894","zw":"716"};
+
+  function codeFor(countryName){
+    return NAME_TO_CODE[(countryName || '').trim().toLowerCase()] || null;
+  }
+  function numericFor(countryName){
+    const alpha2 = codeFor(countryName);
+    return alpha2 ? ALPHA2_TO_NUMERIC[alpha2] : null;
+  }
+
+  /* ---- shared avatar / flag markup ---- */
+  function flagHTML(code, label, cls){
+    return code
+      ? `<img class="${cls}" src="https://flagcdn.com/w40/${code}.png" srcset="https://flagcdn.com/w80/${code}.png 2x" alt="${label}" loading="lazy">`
+      : `<div class="${cls}-fallback">?</div>`;
+  }
+  function avatarHTML(m, cls){
+    if(m.avatar){
+      return `<img class="${cls}" src="${m.avatar}" alt="${m.name}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackAvatarSrc(m)}';">`;
+    }
+    return `<img class="${cls}" src="${fallbackAvatarSrc(m)}" alt="${m.name}" loading="lazy">`;
+  }
+  function fallbackAvatarSrc(m){
+    const seed = encodeURIComponent(`${m.name}-${m.country}`);
+    return `https://api.dicebear.com/9.x/identicon/svg?seed=${seed}&backgroundColor=0c1720&backgroundType=solid`;
+  }
+  function rankTag(m){ return m.rank || ''; }
+
+  /* ---- roster list ---- */
+  function renderRows(members){
+    tableEl.innerHTML = '';
+    members
+      .filter(m => m.name && m.country)
+      .sort((a, b) => Number(a.rank) - Number(b.rank))
+      .forEach(m => {
+        const code = codeFor(m.country);
+
+        const row = document.createElement('div');
+        row.className = 'rank-row';
+        row.dataset.id = m.__id;
+        row.innerHTML = `
+          ${avatarHTML(m, 'rank-avatar')}
+          <div class="rank-id">
+            <span class="rank-name">${m.name}</span>
+            <span class="rank-tag">${rankTag(m)}</span>
+          </div>
+          ${flagHTML(code, m.country, 'rank-flag')}
+        `;
+        tableEl.appendChild(row);
+      });
+  }
+
+  /* ---- clicking a dot scrolls to + highlights its roster row ---- */
+  function highlightMember(id){
+    const row = tableEl.querySelector(`.rank-row[data-id="${id}"]`);
+    if(!row) return;
+    row.scrollIntoView({ behavior:'smooth', block:'center' });
+    row.classList.remove('row-highlight');
+    // restart the animation even if the row was just highlighted
+    void row.offsetWidth;
+    row.classList.add('row-highlight');
+  }
+
+  /* ---- world map ---- */
+  function showTooltip(event, html){
+    tooltipEl.innerHTML = html;
+    const panelRect = tooltipEl.parentElement.getBoundingClientRect();
+    tooltipEl.style.left = (event.clientX - panelRect.left) + 'px';
+    tooltipEl.style.top = (event.clientY - panelRect.top) + 'px';
+    tooltipEl.classList.add('show');
+  }
+  function hideTooltip(){ tooltipEl.classList.remove('show'); }
+
+  function clusterOffsets(n){
+    if(n <= 1) return [[0, 0]];
+    const r = 4 + Math.min(n, 12) * 0.7;
+    const offsets = [];
+    for(let i = 0; i < n; i++){
+      const angle = (i / n) * Math.PI * 2;
+      offsets.push([Math.cos(angle) * r, Math.sin(angle) * r]);
+    }
+    return offsets;
+  }
+
+  function buildGroups(members){
+    const groups = {};
+    members.forEach(m => {
+      if(!m.name || !m.country) return;
+      const numeric = numericFor(m.country);
+      if(!numeric){ console.warn('No map match for country:', m.country); return; }
+      (groups[numeric] = groups[numeric] || []).push(m);
+    });
+    return groups;
+  }
+
+  function renderMap(members, topoData){
+    const width = 960, height = 520;
+    const svg = d3.select('#worldMap').attr('viewBox', `0 0 ${width} ${height}`);
+    svg.selectAll('*').remove();
+
+    const zoomLayer      = svg.append('g').attr('class', 'zoom-layer');
+    const countriesLayer = zoomLayer.append('g');
+    const dotsLayer      = zoomLayer.append('g');
+
+    const featureCollection = topojson.feature(topoData, topoData.objects.countries);
+    const projection = d3.geoNaturalEarth1().fitSize([width, height], featureCollection);
+    const path = d3.geoPath(projection);
+    const groups = buildGroups(members);
+
+    countriesLayer.selectAll('path')
+      .data(featureCollection.features)
+      .join('path')
+        .attr('class', d => 'country-path' + (groups[d.id] ? ' has-members' : ''))
+        .attr('d', path)
+        .on('mousemove', (event, d) => {
+          const list = groups[d.id] || [];
+          const code = list.length ? codeFor(list[0].country) : codeFor(d.properties.name);
+
+          let html = `<div class="tooltip-head">${flagHTML(code, d.properties.name, 'tooltip-flag')}<b>${d.properties.name}</b></div>`;
+
+          if(list.length){
+            html += `<div class="tooltip-members">` + list.map(m => `
+              <div class="tooltip-member">
+                ${avatarHTML(m, 'tooltip-avatar')}
+                <span>${m.name}</span>
+                <span class="tooltip-member-rank">${rankTag(m)}</span>
+              </div>
+            `).join('') + `</div>`;
+          }
+
+          showTooltip(event, html);
+        })
+        .on('mouseleave', hideTooltip);
+
+    Object.entries(groups).forEach(([numericId, memberList]) => {
+      const feature = featureCollection.features.find(f => f.id === numericId);
+      if(!feature) return;
+      const centroid = projection(d3.geoCentroid(feature));
+      if(!centroid) return;
+      const offsets = clusterOffsets(memberList.length);
+
+      dotsLayer.selectAll(`.dot-${numericId}`)
+        .data(memberList)
+        .join('circle')
+          .attr('class', `member-dot dot-${numericId}`)
+          .attr('cx', (d, i) => centroid[0] + offsets[i][0])
+          .attr('cy', (d, i) => centroid[1] + offsets[i][1])
+          .attr('r', 3)
+          .on('mousemove', (event, d) => {
+            const code = codeFor(d.country);
+            const html = `
+              <div class="tooltip-head">${avatarHTML(d, 'tooltip-avatar')}<b>${d.name}</b></div>
+              <div class="tooltip-member" style="margin-top:0.4em;">
+                ${flagHTML(code, d.country, 'tooltip-flag')}
+                <span>${d.country}</span>
+                <span class="tooltip-member-rank">${rankTag(d)}</span>
+              </div>
+            `;
+            showTooltip(event, html);
+          })
+          .on('mouseleave', hideTooltip)
+          .on('click', (event, d) => highlightMember(d.__id));
+    });
+
+    const zoom = d3.zoom()
+      .scaleExtent([1, 8])
+      .on('zoom', (event) => {
+        zoomLayer.attr('transform', event.transform);
+        dotsLayer.selectAll('circle').attr('r', 3 / event.transform.k);
+      });
+
+    svg.call(zoom);
+  }
+
+  /* ---- normalize API rows down to what this page needs ----
+     (id, display_name/username, rank, country, avatar — everything
+     else the endpoint returns, e.g. cryzen_lvl/discord, is ignored) */
+  function normalizeMember(raw){
+    return {
+      __id: raw.id,
+      name: raw.display_name || raw.username || '',
+      rank: raw.rank || '',
+      country: raw.country || '',
+      avatar: raw.avatar || ''
+    };
+  }
+
+  /* ---- orchestration ---- */
+  async function loadAndRender(members){
+    renderRows(members);
+    try{
+      const topoRes = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+      if(!topoRes.ok) throw new Error('map data request failed (' + topoRes.status + ')');
+      renderMap(members, await topoRes.json());
+    }catch(err){
+      console.warn('Could not load world map data:', err);
+      document.querySelector('.map-panel').innerHTML = '<div class="rank-status">Could not load map data — check your connection.</div>';
+    }
+  }
+
+  async function init(){
+    try{
+      const res = await fetch('/api/members');
+      if(!res.ok) throw new Error('/api/members request failed (' + res.status + ')');
+      const { members } = await res.json();
+      await loadAndRender((members || []).map(normalizeMember));
+    }catch(err){
+      console.warn('Could not load members from the API:', err);
+      statusEl.textContent = 'Could not load members from the API.';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

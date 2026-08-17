@@ -1,0 +1,126 @@
+<!-- events.html — upcoming events list. Include this fragment inside index.html's #events-mount. -->
+<style>
+  /* ---------- upcoming events ---------- */
+
+  .events-section{
+    position:relative;
+    z-index:2;
+    max-width:640px;
+    margin:0 auto;
+    padding:5vh 1.5em 9vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1.1em;
+  }
+
+  .event-card{
+    position:relative;
+    width:100%;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    padding:1.1em 1.2em 1.2em;
+    transition:outline-color .2s ease;
+  }
+  .event-card:hover{
+    outline-color:var(--ice);
+  }
+
+  .event-card-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:0.6em;
+  }
+  .event-badge{
+    padding:0.25em 0.6em;
+    background:rgba(111,195,232,0.1);
+    border:1px solid rgba(111,195,232,0.4);
+    font-size:0.6em;
+    font-weight:800;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ice-bright);
+  }
+  .event-date{
+    font-size:0.72em;
+    font-weight:700;
+    letter-spacing:0.04em;
+    color:var(--text-dim);
+  }
+
+  .event-name{
+    font-size:1.05em;
+    font-weight:800;
+    letter-spacing:0.02em;
+    color:var(--text);
+    margin-bottom:0.65em;
+  }
+
+  .event-meta{
+    display:flex;
+    align-items:baseline;
+    gap:0.6em;
+    padding-bottom:0.65em;
+    margin-bottom:0.7em;
+    border-bottom:1px solid rgba(111,195,232,0.12);
+  }
+  .event-meta-label{
+    font-size:0.62em;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .event-meta-value{
+    font-size:0.8em;
+    font-weight:600;
+    color:var(--text);
+  }
+
+  .event-invite-note{
+    font-size:0.74em;
+    line-height:1.55;
+    color:var(--text-dim);
+  }
+  .event-invite-note b{
+    color:var(--ice-bright);
+  }
+  .event-invite-link{
+    color:var(--ice-bright);
+    text-decoration:none;
+    border-bottom:1px dashed rgba(111,195,232,0.5);
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .event-invite-link:hover{
+    color:var(--ice);
+    border-color:var(--ice);
+  }
+</style>
+
+<div class="events-section" id="events">
+  <div class="section-title">
+    <img class="section-title-bg" src="media/events_title.png" alt=""
+         onerror="this.onerror=null;this.style.display='none';">
+    <span class="section-title-text">Upcoming Events</span>
+  </div>
+
+  <div class="event-card">
+    <div class="event-card-head">
+      <span class="event-badge">Event</span>
+      <span class="event-date">8/14/2026</span>
+    </div>
+    <div class="event-name">Practice Session</div>
+    <div class="event-meta">
+      <span class="event-meta-label">Match Type</span>
+      <span class="event-meta-value">Custom (TDM and DM)</span>
+    </div>
+    <div class="event-invite-note">
+      Invite will be shared to <b>Members Only</b> in the <a class="event-invite-link" href="#invites">Invites section</a>.
+    </div>
+  </div>
+</div>
+
+<!-- no component-specific JS needed for events -->

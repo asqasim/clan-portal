@@ -1,0 +1,398 @@
+<!-- members.html — clan roster + member profile modal. Include this fragment inside index.html's #members-mount. -->
+<style>
+  /* ---------- roster ---------- */
+  .roster{
+    position:relative;
+    z-index:2;
+    max-width:1080px;
+    margin:0 auto;
+    padding:4.5vh 1.5em 6vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1.4em;
+  }
+
+  .row{
+    width:100%;
+    display:grid;
+    gap:0.9em;
+  }
+  .row.owner-row{
+    display:flex;
+    justify-content:center;
+    margin-bottom:0.6em;
+  }
+  .row.member-row{
+    grid-template-columns:repeat(6, 1fr);
+  }
+  @media (max-width:760px){
+    .row.member-row{grid-template-columns:repeat(3, 1fr);}
+  }
+  @media (max-width:420px){
+    .row.member-row{grid-template-columns:repeat(2, 1fr);}
+  }
+
+  .member-card{
+    position:relative;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    padding:0.9em 0.7em 0.8em;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    cursor:pointer;
+    transition:transform .2s ease, outline-color .2s ease, background-color .2s ease;
+  }
+  .member-card:hover{
+    transform:translateY(-3px);
+    outline-color:var(--ice);
+  }
+  .member-card.owner{
+    width:200px;
+    padding:1.2em 1em 1.1em;
+  }
+
+  .member-card .corner{
+    position:absolute;
+    width:13px;
+    height:13px;
+    opacity:0;
+    transition:opacity .2s ease;
+  }
+  .member-card .corner.tl{top:-1px;left:-1px;border-top:2px solid var(--ice-bright);border-left:2px solid var(--ice-bright);}
+  .member-card .corner.tr{top:-1px;right:-1px;border-top:2px solid var(--ice-bright);border-right:2px solid var(--ice-bright);}
+  .member-card .corner.bl{bottom:-1px;left:-1px;border-bottom:2px solid var(--ice-bright);border-left:2px solid var(--ice-bright);}
+  .member-card .corner.br{bottom:-1px;right:-1px;border-bottom:2px solid var(--ice-bright);border-right:2px solid var(--ice-bright);}
+  .member-card:hover .corner{opacity:1;}
+
+  .avatar-wrap{
+    position:relative;
+    width:64px;
+    height:64px;
+    margin-bottom:0.6em;
+    border-radius:50%;
+    overflow:hidden;
+    box-shadow:0 0 0 2px rgba(111,195,232,0.25), 0 0 16px rgba(111,195,232,0.12);
+  }
+  .member-card.owner .avatar-wrap{
+    width:84px;
+    height:84px;
+  }
+  .avatar-wrap img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    filter:grayscale(35%) brightness(.85);
+    transition:filter .25s ease;
+  }
+  .member-card:hover .avatar-wrap img{
+    filter:grayscale(0%) brightness(1);
+  }
+  .member-card.open-slot .avatar-wrap img{
+    filter:grayscale(75%) brightness(.45);
+  }
+  .member-card.open-slot:hover{
+    transform:none;
+    outline-color:var(--outline);
+  }
+  .member-card.open-slot{
+    cursor:default;
+  }
+
+  .owner-crown{
+    position:absolute;
+    top:-6px;
+    right:-2px;
+    width:20px;
+    height:20px;
+    filter:drop-shadow(0 0 4px rgba(205,242,255,0.6));
+  }
+
+  .card-name{
+    font-size:0.82em;
+    font-weight:700;
+    letter-spacing:0.02em;
+    color:var(--text);
+  }
+  .member-card.owner .card-name{
+    font-size:1.05em;
+  }
+  .card-name.blurred{
+    filter:blur(4px);
+    user-select:none;
+    color:var(--text-dim);
+  }
+
+  .card-tag{
+    margin-top:0.35em;
+    font-size:0.6em;
+    font-weight:700;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  .member-card.owner .card-tag{
+    color:var(--ice-bright);
+  }
+
+  .roster-status{
+    width:100%;
+    font-size:0.72em;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    text-align:center;
+    padding:2.5em 0;
+  }
+
+  .locked-note{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.9em;
+    width:100%;
+    padding:2.8em 1em;
+    text-align:center;
+    color:var(--text-dim);
+    font-size:0.8em;
+  }
+</style>
+
+<div class="roster" id="roster">
+  <div class="roster-status">Loading roster&hellip;</div>
+</div>
+
+<div class="modal-backdrop" id="backdrop">
+  <div class="modal-frame">
+    <span class="frame-corner tl"></span>
+    <span class="frame-corner tr"></span>
+    <span class="frame-corner bl"></span>
+    <span class="frame-corner br"></span>
+    <div class="modal-panel">
+      <div class="panel-header">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L20 5.5V11C20 16 16.7 20.2 12 22C7.3 20.2 4 16 4 11V5.5L12 2Z" stroke="#cdf2ff" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        <span>Profile</span>
+      </div>
+
+      <div class="panel-body">
+        <div class="panel-avatar">
+          <img id="pAvatar" src="" alt="">
+        </div>
+        <div class="panel-id">
+          <span class="panel-name" id="pName"></span>
+          <span class="panel-tag" id="pTag"></span>
+        </div>
+
+<div class="panel-stats">
+
+    <div class="stat">
+        <span>Rank</span>
+        <b id="pRank"></b>
+    </div>
+
+    <div class="stat">
+        <span>Member Since</span>
+        <b id="profileMemberSince">—</b>
+    </div>
+
+    <div class="stat">
+        <span>Cryzen Level</span>
+        <b id="profileCryzenLevel">—</b>
+    </div>
+
+    <div class="stat">
+        <span>Main Weapon</span>
+        <b id="profileMainWeapon">—</b>
+    </div>
+
+    <div class="stat">
+        <span>Discord</span>
+        <b id="profileDiscord">—</b>
+    </div>
+
+</div>
+</div>
+
+<div class="panel-footer">
+
+    <a
+        class="pbtn more"
+        id="profileLearnMore"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        Learn More
+    </a>
+
+    <button class="pbtn close" id="btnClose">
+        Close
+    </button>
+
+</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ================= members / roster state =================
+  // cached roster from /api/members
+  let allMembers = [];
+  let membersLoaded = false;
+
+  const roster = document.getElementById('roster');
+
+  // ================= members / roster =================
+
+  /*
+   * Load the clan's 19 members and render the roster.
+   */
+  async function loadMembers(){
+    try{
+      const response = await fetch('/api/members', {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if(!response.ok){
+        roster.innerHTML = '<div class="roster-status">Could not load members.</div>';
+        return;
+      }
+
+      const data = await response.json();
+      allMembers = data.members || [];
+      membersLoaded = true;
+
+      renderRoster(allMembers);
+
+    }catch(error){
+      console.error(error);
+      roster.innerHTML = '<div class="roster-status">Could not connect to the server.</div>';
+    }
+  }
+
+  function renderRoster(members){
+    roster.innerHTML = '';
+
+    if(members.length === 0){
+      roster.innerHTML = '<div class="roster-status">No members found.</div>';
+      return;
+    }
+
+    const owner = members.find(m => m.rank === 'owner');
+    const rest = owner ? members.filter(m => m !== owner) : members.slice();
+
+    // keep captains, then sergeants, then recruits grouped together;
+    // members within the same rank stay in their original (backend) order
+    rest.sort((a, b) => {
+      const ai = RANKS.indexOf((a.rank || 'recruit').toLowerCase());
+      const bi = RANKS.indexOf((b.rank || 'recruit').toLowerCase());
+      return (ai === -1 ? RANKS.length : ai) - (bi === -1 ? RANKS.length : bi);
+    });
+
+    if(owner){
+      const ownerRow = document.createElement('div');
+      ownerRow.className = 'row owner-row';
+      ownerRow.appendChild(buildRosterCard(owner, true));
+      roster.appendChild(ownerRow);
+    }
+
+    const row = document.createElement('div');
+    row.className = 'row member-row';
+    rest.forEach(m => row.appendChild(buildRosterCard(m, false)));
+    roster.appendChild(row);
+  }
+
+  function buildRosterCard(member, isOwner){
+    const card = document.createElement('div');
+    card.className = 'member-card' + (isOwner ? ' owner' : '');
+
+    ['tl','tr','bl','br'].forEach(pos => {
+      const c = document.createElement('span');
+      c.className = 'corner ' + pos;
+      card.appendChild(c);
+    });
+
+    const avatarWrap = document.createElement('div');
+    avatarWrap.className = 'avatar-wrap';
+    const img = document.createElement('img');
+    img.src = avatarForMember(member);
+    img.alt = '';
+    img.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
+    avatarWrap.appendChild(img);
+
+    if(isOwner){
+      const crown = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      crown.setAttribute('class','owner-crown');
+      crown.setAttribute('viewBox','0 0 24 24');
+      crown.innerHTML = '<path d="M3 8l4 3 5-6 5 6 4-3-2 10H5L3 8z" fill="#cdf2ff" opacity="0.9"/>';
+      avatarWrap.appendChild(crown);
+    }
+    card.appendChild(avatarWrap);
+
+    const name = document.createElement('div');
+    name.className = 'card-name';
+    name.textContent = member.display_name;
+    card.appendChild(name);
+
+    const tag = document.createElement('div');
+    tag.className = 'card-tag';
+    tag.textContent = rankLabel(member.rank);
+    tag.style.color = rankColor(member.rank);
+    card.appendChild(tag);
+
+    card.addEventListener('click', () => openProfile(member));
+    return card;
+  }
+
+  // ================= profile modal =================
+  const backdrop = document.getElementById('backdrop');
+  const pAvatar = document.getElementById('pAvatar');
+  const pName = document.getElementById('pName');
+  const pRank = document.getElementById('pRank');
+  const pMemberSince = document.getElementById('profileMemberSince');
+const pCryzenLevel = document.getElementById('profileCryzenLevel');
+const pMainWeapon = document.getElementById('profileMainWeapon');
+const pDiscord = document.getElementById('profileDiscord');
+const pLearnMore = document.getElementById('profileLearnMore');
+
+  let closeTimer = null;
+
+  function openProfile(member){
+    pAvatar.src = avatarForMember(member);
+    pAvatar.onerror = function(){ this.onerror = null; this.src = fallbackAvatar(); };
+    pName.textContent = member.display_name;
+    pRank.textContent = rankLabel(member.rank);
+    pRank.style.color = rankColor(member.rank);
+    pMemberSince.textContent = member.member_since || '—';
+    pCryzenLevel.textContent = member.cryzen_lvl || '—';
+    pMainWeapon.textContent = member.main_weapon || '—';
+    pDiscord.textContent = member.discord_username || '—';
+    pLearnMore.href = member.cryzen_profile || '#';
+
+    clearTimeout(closeTimer);
+    backdrop.classList.remove('closing');
+    backdrop.classList.remove('open');
+    void backdrop.offsetWidth; // force reflow so the corner keyframes restart from center every time
+    backdrop.classList.add('open');
+    document.body.classList.add('no-scroll');
+  }
+
+  function closeProfile(){
+    if(!backdrop.classList.contains('open')) return;
+    backdrop.classList.add('closing');
+    backdrop.classList.remove('open');
+    document.body.classList.remove('no-scroll');
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => backdrop.classList.remove('closing'), 400);
+  }
+
+  document.getElementById('btnClose').addEventListener('click', closeProfile);
+  backdrop.addEventListener('click', e => { if(e.target === backdrop) closeProfile();  });
+</script>
