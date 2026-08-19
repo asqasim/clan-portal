@@ -76,10 +76,49 @@
   .member-dot{
     fill:var(--ice-bright);
     stroke:var(--bg-0);
-    stroke-width:0.6;
-    filter:drop-shadow(0 0 3px rgba(111,195,232,0.9));
+    stroke-width:0.35;
+    filter:drop-shadow(0 0 2px rgba(111,195,232,0.9));
     cursor:pointer;
+    transform-box:fill-box;
+    transform-origin:center;
+    animation:dotPulse 2.6s ease-in-out infinite;
   }
+  @keyframes dotPulse{
+    0%, 100%{ opacity:0.75; transform:scale(1); }
+    50%{ opacity:1; transform:scale(1.5); }
+  }
+
+  .chips-layer{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .2s ease, visibility 0s linear .2s;
+  }
+  .chips-layer.chips-visible{
+    opacity:1;
+    visibility:visible;
+    transition:opacity .2s ease, visibility 0s linear 0s;
+  }
+  .member-chip-inner{
+    display:flex;
+    align-items:center;
+    gap:0.4em;
+    width:max-content;
+    max-width:170px;
+    margin:0 auto;
+    padding:0.3em 0.55em;
+    background-color:var(--panel);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    font-family:'Montserrat',sans-serif;
+    font-size:11px;
+    line-height:1.3;
+    color:var(--text);
+    white-space:nowrap;
+    box-shadow:0 2px 8px rgba(0,0,0,0.4);
+  }
+  .member-chip-inner span{ overflow:hidden; text-overflow:ellipsis; }
+  .member-chip-inner .tooltip-member-rank{ flex-shrink:0; }
 
   .map-tooltip{
     position:absolute;
@@ -191,7 +230,7 @@
     top:1.2em;
     right:1.2em;
     z-index:20;
-    width:280px;
+    width:310px;
     max-width:calc(100vw - 2.4em);
     max-height:calc(100vh - 2.4em);
     display:flex;
@@ -210,8 +249,8 @@
   .rank-row{
     display:flex;
     align-items:center;
-    gap:0.55em;
-    padding:0.32em 0.55em;
+    gap:0.7em;
+    padding:0.48em 0.7em;
     border-bottom:1px solid rgba(111,195,232,0.08);
     transition:background-color .15s ease;
   }
@@ -225,8 +264,8 @@
   .rank-row.row-highlight{ animation:rowHighlight 1.4s ease-out; }
 
   .rank-avatar{
-    width:26px;
-    height:26px;
+    width:32px;
+    height:32px;
     flex-shrink:0;
     border-radius:50%;
     object-fit:cover;
@@ -235,15 +274,15 @@
   }
 
   .rank-flag{
-    width:22px;
-    height:15px;
+    width:26px;
+    height:18px;
     flex-shrink:0;
     object-fit:cover;
     box-shadow:0 0 0 1px var(--outline);
   }
   .rank-flag-fallback{
-    width:22px;
-    height:15px;
+    width:26px;
+    height:18px;
     flex-shrink:0;
     display:flex;
     align-items:center;
@@ -251,7 +290,7 @@
     box-shadow:0 0 0 1px var(--outline);
     background:var(--bg-1);
     color:var(--text-dim);
-    font-size:0.55em;
+    font-size:0.62em;
     font-weight:700;
   }
 
@@ -264,7 +303,7 @@
   }
 
   .rank-name{
-    font-size:0.75em;
+    font-size:0.9em;
     font-weight:700;
     letter-spacing:0.01em;
     color:var(--text);
@@ -274,9 +313,9 @@
   }
 
   .rank-tag{
-    font-size:0.54em;
+    font-size:0.65em;
     font-weight:700;
-    letter-spacing:0.14em;
+    letter-spacing:0.13em;
     text-transform:uppercase;
     color:var(--ice);
   }
@@ -365,12 +404,22 @@
   }
   function rankTag(m){ return m.rank || ''; }
 
+  /* ---- rank sort order: owner, captain, sergeant, recruit, then anything else ---- */
+  const RANK_ORDER = { owner:0, captain:1, sergeant:2, recruit:3 };
+  function rankIndex(rank){
+    const key = (rank || '').trim().toLowerCase();
+    return RANK_ORDER.hasOwnProperty(key) ? RANK_ORDER[key] : 99;
+  }
+  function byRank(a, b){
+    return rankIndex(a.rank) - rankIndex(b.rank) || a.name.localeCompare(b.name);
+  }
+
   /* ---- roster list ---- */
   function renderRows(members){
     tableEl.innerHTML = '';
     members
       .filter(m => m.name && m.country)
-      .sort((a, b) => Number(a.rank) - Number(b.rank))
+      .sort(byRank)
       .forEach(m => {
         const code = codeFor(m.country);
 
@@ -410,15 +459,41 @@
   }
   function hideTooltip(){ tooltipEl.classList.remove('show'); }
 
-  function clusterOffsets(n){
-    if(n <= 1) return [[0, 0]];
-    const r = 4 + Math.min(n, 12) * 0.7;
-    const offsets = [];
-    for(let i = 0; i < n; i++){
-      const angle = (i / n) * Math.PI * 2;
-      offsets.push([Math.cos(angle) * r, Math.sin(angle) * r]);
+  /* Deterministic "random" offset for a member's dot within their country.
+     Seeded off the member's own identity (not their index in the group), so
+     a given member always lands in the same spot on the map — regardless of
+     how many other members share that country or what order they load in.
+
+     RANDOM_SEED: bump this number and reload to reshuffle everyone's dot
+     position at once — keep trying values until the layout looks good. */
+  const RANDOM_SEED = 907;
+
+  function hashString(str){
+    let h = 2166136261;
+    for(let i = 0; i < str.length; i++){
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
     }
-    return offsets;
+    return h >>> 0;
+  }
+  function seededRandom(seed){
+    let x = seed || 123456789;
+    return function next(){
+      x ^= x << 13; x >>>= 0;
+      x ^= x >> 17;
+      x ^= x << 5;  x >>>= 0;
+      return x / 4294967295;
+    };
+  }
+  function memberOffset(m, groupSize){
+    if(groupSize <= 1) return [0, 0];
+    const rand = seededRandom(hashString(`${RANDOM_SEED}-${m.__id}-${m.name}-${m.country}`));
+    const angle = rand() * Math.PI * 2;
+    const spread = 9 + Math.min(groupSize, 12) * 2.2;
+    // floor of 0.45 keeps dots away from dead-center so they read as spread out,
+    // not stacked on top of each other near the centroid
+    const radius = spread * Math.sqrt(0.45 + rand() * 0.55);
+    return [Math.cos(angle) * radius, Math.sin(angle) * radius];
   }
 
   function buildGroups(members){
@@ -446,18 +521,26 @@
     const path = d3.geoPath(projection);
     const groups = buildGroups(members);
 
+    // true once zoomed in far enough that every member already has a chip
+    // open on the map — the two tooltip systems below check this so they
+    // never double up with the chips.
+    let chipsActive = false;
+
     countriesLayer.selectAll('path')
       .data(featureCollection.features)
       .join('path')
         .attr('class', d => 'country-path' + (groups[d.id] ? ' has-members' : ''))
         .attr('d', path)
         .on('mousemove', (event, d) => {
-          const list = groups[d.id] || [];
+          const list = (groups[d.id] || []).slice().sort(byRank);
           const code = list.length ? codeFor(list[0].country) : codeFor(d.properties.name);
 
           let html = `<div class="tooltip-head">${flagHTML(code, d.properties.name, 'tooltip-flag')}<b>${d.properties.name}</b></div>`;
 
-          if(list.length){
+          // once zoomed in, every member already has their own chip open on
+          // the map, so keep the country tooltip to just name + flag instead
+          // of repeating the member list.
+          if(list.length && !chipsActive){
             html += `<div class="tooltip-members">` + list.map(m => `
               <div class="tooltip-member">
                 ${avatarHTML(m, 'tooltip-avatar')}
@@ -471,27 +554,37 @@
         })
         .on('mouseleave', hideTooltip);
 
+    const allMembers = [];
+    const BASE_DOT_R = 1.3;
+
     Object.entries(groups).forEach(([numericId, memberList]) => {
       const feature = featureCollection.features.find(f => f.id === numericId);
       if(!feature) return;
       const centroid = projection(d3.geoCentroid(feature));
       if(!centroid) return;
-      const offsets = clusterOffsets(memberList.length);
+
+      memberList.forEach(m => {
+        const [ox, oy] = memberOffset(m, memberList.length);
+        m.__cx = centroid[0] + ox;
+        m.__cy = centroid[1] + oy;
+        allMembers.push(m);
+      });
 
       dotsLayer.selectAll(`.dot-${numericId}`)
         .data(memberList)
         .join('circle')
           .attr('class', `member-dot dot-${numericId}`)
-          .attr('cx', (d, i) => centroid[0] + offsets[i][0])
-          .attr('cy', (d, i) => centroid[1] + offsets[i][1])
-          .attr('r', 3)
+          .attr('cx', d => d.__cx)
+          .attr('cy', d => d.__cy)
+          .attr('r', BASE_DOT_R)
           .on('mousemove', (event, d) => {
-            const code = codeFor(d.country);
+            // once chips are showing, every dot already has its label open —
+            // skip the tooltip so we don't end up with two chips stacked.
+            if(chipsActive) return;
             const html = `
-              <div class="tooltip-head">${avatarHTML(d, 'tooltip-avatar')}<b>${d.name}</b></div>
-              <div class="tooltip-member" style="margin-top:0.4em;">
-                ${flagHTML(code, d.country, 'tooltip-flag')}
-                <span>${d.country}</span>
+              <div class="tooltip-member">
+                ${avatarHTML(d, 'tooltip-avatar')}
+                <span>${d.name}</span>
                 <span class="tooltip-member-rank">${rankTag(d)}</span>
               </div>
             `;
@@ -501,11 +594,46 @@
           .on('click', (event, d) => highlightMember(d.__id));
     });
 
+    /* ---- persistent member chips (shown at deep zoom, as if every dot were hovered) ---- */
+    const chipsLayer = zoomLayer.append('g').attr('class', 'chips-layer');
+
+    const chipGroups = chipsLayer.selectAll('g.member-chip')
+      .data(allMembers.sort(byRank))
+      .join('g')
+        .attr('class', 'member-chip')
+        .attr('transform', d => `translate(${d.__cx},${d.__cy})`);
+
+    chipGroups.append('foreignObject')
+      .attr('x', -90).attr('y', -40).attr('width', 180).attr('height', 28)
+      .style('overflow', 'visible')
+      .append('xhtml:div')
+        .attr('class', 'member-chip-inner')
+        .html(d => `
+          ${avatarHTML(d, 'tooltip-avatar')}
+          <span>${d.name}</span>
+          <span class="tooltip-member-rank">${rankTag(d)}</span>
+        `);
+
+    /* ---- zoom: one threshold — cross it and every member's chip pops open ---- */
+    const ZOOM_SHOW_CHIPS = 3; // tweak to taste
+
     const zoom = d3.zoom()
       .scaleExtent([1, 8])
       .on('zoom', (event) => {
+        const k = event.transform.k;
         zoomLayer.attr('transform', event.transform);
-        dotsLayer.selectAll('circle').attr('r', 3 / event.transform.k);
+        dotsLayer.selectAll('circle').attr('r', BASE_DOT_R / k);
+
+        const shouldShowChips = k >= ZOOM_SHOW_CHIPS;
+        if(shouldShowChips !== chipsActive){
+          chipsActive = shouldShowChips;
+          chipsLayer.classed('chips-visible', chipsActive);
+          if(!chipsActive) hideTooltip();
+        }
+        if(shouldShowChips){
+          // counter-scale so chips stay a constant, readable size on screen
+          chipGroups.attr('transform', d => `translate(${d.__cx},${d.__cy}) scale(${1 / k})`);
+        }
       });
 
     svg.call(zoom);
