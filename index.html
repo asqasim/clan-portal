@@ -392,7 +392,35 @@
   }
 
   /* ---------- login modal ---------- */
-  .login-frame{ width:min(90vw, 320px); }
+  .login-frame{
+    width:min(90vw, 320px);
+    max-height:92vh;
+    transition:width .25s ease;
+  }
+  .login-frame.wide{ width:min(95vw, 920px); }
+  .login-frame.mode-verify{ width:min(96vw, 1100px); }
+
+  /* keep the modal within the viewport: header/footer stay put, the
+     body area scrolls internally instead of pushing the panel off-screen */
+  #loginBackdrop{
+    overflow-y:auto;
+    padding:3vh 0.5em;
+  }
+  .login-frame .modal-panel{
+    max-height:92vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .login-frame .panel-header,
+  .login-frame .panel-footer{
+    flex:0 0 auto;
+  }
+  .login-frame .panel-body{
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+  }
+
   .login-body{ align-items:stretch; padding:1.4em 1.4em 1.3em; gap:0; }
   .login-form{
     position:relative;
@@ -432,6 +460,9 @@
     color:#ff8a8a;
     text-align:center;
   }
+  .login-message.info{
+    color:var(--ice-bright);
+  }
   .login-password-wrap{
     position:relative;
     display:flex;
@@ -466,6 +497,315 @@
   .login-submit{
     text-align:center;
   }
+
+  /* ---------- login/register view switching ---------- */
+  .view-hidden{ display:none !important; }
+
+  .auth-switch{
+    margin:0.2em 0 0;
+    font-size:0.72em;
+    color:var(--text-dim);
+    text-align:center;
+  }
+  .link-btn{
+    background:none;
+    border:none;
+    padding:0;
+    font-family:'Montserrat',sans-serif;
+    font-size:1em;
+    font-weight:700;
+    color:var(--ice-bright);
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  .link-btn:hover{ color:var(--ice); }
+
+  .login-hint{
+    font-size:0.66em;
+    color:var(--text-dim);
+    margin:-0.5em 0 0;
+  }
+
+  /* ---------- registration warning banner ---------- */
+  .warning-banner{
+    display:flex;
+    align-items:flex-start;
+    gap:0.7em;
+    background:rgba(255,159,67,0.12);
+    border:1px solid #ff9f43;
+    padding:0.85em 1em;
+    font-size:0.78em;
+    font-weight:600;
+    line-height:1.5;
+    color:#ffd9ad;
+    margin-bottom:1.1em;
+  }
+  .warning-banner svg{
+    flex:0 0 auto;
+    width:1.5em;
+    height:1.5em;
+    color:#ff9f43;
+    margin-top:0.05em;
+  }
+  .warning-banner a{
+    color:#fff;
+    font-weight:800;
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  .warning-banner a:hover{ color:#ffe3c2; }
+
+  /* ---------- registration form layout (wide) ---------- */
+  .form-section{
+    display:flex;
+    flex-direction:column;
+    gap:0.9em;
+  }
+  .form-section + .form-section{
+    margin-top:1.1em;
+  }
+  .form-section-title{
+    display:flex;
+    align-items:center;
+    gap:0.7em;
+    font-size:0.66em;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ice-bright);
+    margin:0 0 0.1em;
+  }
+  .form-section-title::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--outline);
+  }
+  .form-section-note{
+    font-size:0.62em;
+    font-weight:600;
+    letter-spacing:0.04em;
+    text-transform:none;
+    color:var(--text-dim);
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0.9em 1.4em;
+  }
+  .login-frame.mode-register .form-grid{
+    grid-template-columns:1fr 1fr;
+  }
+  .login-frame.mode-register .login-field.span-2{
+    grid-column:1 / -1;
+  }
+
+  /* ---------- registration verification (step 2) ---------- */
+  .verify-view{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    gap:0.9em;
+  }
+  .login-frame.mode-verify .verify-view{
+    display:grid;
+    grid-template-columns:0.75fr 1.25fr;
+    align-items:center;
+    text-align:left;
+    gap:0 2em;
+  }
+  .verify-text-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.9em;
+    width:100%;
+  }
+  .login-frame.mode-verify .verify-text-col{
+    align-items:flex-start;
+  }
+  .verify-image-col{
+    display:none;
+    align-items:center;
+    justify-content:center;
+  }
+  .login-frame.mode-verify .verify-image-col{
+    display:flex;
+  }
+  .verify-image{
+    width:100%;
+    max-width:540px;
+    height:auto;
+    display:block;
+    object-fit:contain;
+  }
+  .verify-label{
+    font-size:0.68em;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin:0;
+  }
+  .verify-code-row{
+    display:flex;
+    align-items:stretch;
+    gap:0.4em;
+    width:100%;
+  }
+  .verify-code{
+    flex:1;
+    min-width:0;
+    font-size:clamp(0.7em, 2.4vw, 1.25em);
+    font-weight:800;
+    letter-spacing:0.1em;
+    color:var(--ice-bright);
+    background:#0f1a22;
+    border:1px solid var(--outline);
+    padding:0.15em 0.2em;
+    text-align:center;
+    overflow-wrap:break-word;
+  }
+  .copy-code-btn{
+    position:relative;
+    z-index:1;
+    pointer-events:auto;
+    flex:0 0 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:0.15em;
+    min-width:2.8em;
+    background:#0f1a22;
+    border:1px solid var(--outline);
+    color:var(--text-dim);
+    cursor:pointer;
+    padding:0 0.55em;
+    font-family:'Montserrat',sans-serif;
+    font-size:0.5em;
+    font-weight:700;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    transition:color .2s ease, border-color .2s ease;
+  }
+  .copy-code-btn:hover{
+    color:var(--ice-bright);
+    border-color:var(--ice);
+  }
+  .copy-code-btn.copied{ color:#7be59a; border-color:#7be59a; }
+  .verify-steps{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap:0.5em;
+    margin:0;
+    padding:0;
+    width:100%;
+  }
+  .verify-steps li{
+    display:flex;
+    align-items:center;
+    gap:0.6em;
+    font-size:0.85em;
+    color:var(--text);
+    line-height:1.5;
+  }
+  .verify-step-num{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:1.6em;
+    height:1.6em;
+    background:rgba(111,195,232,0.12);
+    border:1px solid var(--outline);
+    color:var(--ice-bright);
+    font-weight:800;
+    font-size:0.85em;
+  }
+  .verify-link{
+    position:relative;
+    z-index:1;
+    color:var(--ice-bright) !important;
+    font-weight:700;
+    text-decoration:underline !important;
+    text-underline-offset:2px;
+    cursor:pointer;
+    pointer-events:auto;
+  }
+  .verify-link:hover{ color:#fff !important; }
+  .verify-expiry{
+    font-size:0.72em;
+    color:var(--text-dim);
+    margin:0;
+  }
+
+  /* below this width, collapse the wide two-column layouts back to one
+     column and let the panel breathe vertically instead of squeezing */
+  @media (max-width:720px){
+    .login-frame.mode-register .form-grid{
+      grid-template-columns:1fr;
+    }
+    .login-frame.mode-verify .verify-view{
+      grid-template-columns:1fr;
+    }
+    .login-frame.mode-verify .verify-text-col{
+      align-items:center;
+      text-align:center;
+    }
+    .login-frame.mode-verify .verify-image-col{
+      order:-1;
+    }
+    .verify-image{
+      max-width:200px;
+    }
+  }
+
+  /* ---------- map overlay ---------- */
+  /* Full-screen panel for the Map, toggled open/closed instead of
+     navigating to a separate map.html page — this is what keeps the rest
+     of the app (members/invites/etc.) mounted and avoids re-fetching their
+     data every time the map is opened and closed. */
+  .map-overlay{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .2s ease, visibility 0s linear .2s;
+  }
+  .map-overlay.open{
+    opacity:1;
+    visibility:visible;
+    transition:opacity .2s ease, visibility 0s linear 0s;
+  }
+  .map-overlay-close{
+    position:fixed;
+    top:1.1em;
+    right:1.1em;
+    z-index:110;
+    width:38px;
+    height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background-color:rgba(12,23,32,0.8);
+    outline:1px solid var(--outline);
+    border:1px solid #000;
+    color:var(--ice-bright);
+    font-size:1.3em;
+    line-height:1;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+    transition:border-color .2s ease, color .2s ease;
+  }
+  .map-overlay-close:hover{
+    color:#fff;
+    border-color:var(--ice);
+  }
 </style>
 </head>
 <body>
@@ -497,7 +837,7 @@
       <a class="nav-link" href="#invites" gs_tracker="Nav invites Link Clicked">Invites</a>
       <a class="nav-link" href="#events" gs_tracker="Nav announcements Link Clicked">Announcements</a>
       <button type="button" class="nav-link" id="navRules" gs_tracker="Nav rules Link Clicked">Rules</button>
-      <a class="nav-link" href="map.html" gs_tracker="Nav map Link Clicked">Map</a>
+      <button type="button" class="nav-link" id="navMap" gs_tracker="Nav map Link Clicked">Map</button>
     </nav>
 
     <div class="account-wrap" id="accountWrap">
@@ -527,6 +867,13 @@
 
 <!-- events.html is injected here at runtime -->
 <div id="events-mount"></div>
+
+<!-- map.html is injected here at runtime, once, at load — it's shown/hidden
+     via the .open class below rather than being fetched again each time -->
+<div class="map-overlay" id="mapOverlay">
+  <button type="button" class="map-overlay-close" id="mapOverlayClose" aria-label="Close map">&times;</button>
+  <div id="map-mount"></div>
+</div>
 
 <div class="modal-backdrop" id="rulesBackdrop">
   <div class="modal-frame rules-frame">
@@ -560,7 +907,7 @@
 </div>
 
 <div class="modal-backdrop" id="loginBackdrop">
-  <div class="modal-frame login-frame">
+  <div class="modal-frame login-frame" id="loginFrame">
     <span class="frame-corner tl"></span>
     <span class="frame-corner tr"></span>
     <span class="frame-corner bl"></span>
@@ -570,7 +917,7 @@
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2L20 5.5V11C20 16 16.7 20.2 12 22C7.3 20.2 4 16 4 11V5.5L12 2Z" stroke="#cdf2ff" stroke-width="1.4" stroke-linejoin="round"/>
         </svg>
-        <span>Member Login</span>
+        <span id="loginPanelTitle">Member Login</span>
       </div>
       <div class="panel-body login-body">
         <form class="login-form" id="loginForm">
@@ -596,11 +943,112 @@
             </div>
           </div>
           <p class="login-message" id="loginMessage"></p>
+          <p class="auth-switch">New to the clan? <button type="button" class="link-btn" id="showRegisterBtn" gs_tracker="Create new account clicked">Create an account</button></p>
         </form>
+
+        <form class="login-form view-hidden" id="registerForm">
+          <div class="warning-banner">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3.5L22 20.5H2L12 3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <line x1="12" y1="9.5" x2="12" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="12" cy="17" r="0.9" fill="currentColor"/>
+            </svg>
+            <span>You should be an official <a href="https://cryzen.io/center/clans/clan/R1ME" target="_blank" rel="noopener noreferrer">R1ME</a> member at cryzen.io before sending this request.</span>
+          </div>
+
+          <div class="form-section">
+            <p class="form-section-title">Account Details</p>
+            <div class="form-grid">
+              <div class="login-field">
+                <label class="login-label" for="registerUsername">Username</label>
+                <input class="login-input" id="registerUsername" type="text" autocomplete="username" required>
+              </div>
+              <div class="login-field">
+                <label class="login-label" for="registerCryzenName">Cryzen Profile Name</label>
+                <input class="login-input" id="registerCryzenName" type="text" required>
+              </div>
+              <div class="login-field">
+                <label class="login-label" for="registerPassword">Password</label>
+                <div class="login-password-wrap">
+                  <input class="login-input" id="registerPassword" type="password" autocomplete="new-password" required>
+                  <button type="button" class="pw-toggle" id="registerPasswordToggle" aria-label="Show password">
+                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.6"/>
+                    </svg>
+                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.6"/>
+                      <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="login-field">
+                <label class="login-label" for="registerPasswordConfirm">Confirm Password</label>
+                <div class="login-password-wrap">
+                  <input class="login-input" id="registerPasswordConfirm" type="password" autocomplete="new-password" required>
+                  <button type="button" class="pw-toggle" id="registerPasswordConfirmToggle" aria-label="Show password">
+                    <svg class="icon-eye" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.6"/>
+                    </svg>
+                    <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.6"/>
+                      <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <p class="form-section-title">Optional Details <span class="form-section-note">(can be added later)</span></p>
+            <div class="form-grid">
+              <div class="login-field">
+                <label class="login-label" for="registerDiscord">Discord Username</label>
+                <input class="login-input" id="registerDiscord" type="text">
+              </div>
+              <div class="login-field">
+                <label class="login-label" for="registerWeapon">Main Weapon</label>
+                <input class="login-input" id="registerWeapon" type="text">
+              </div>
+              <div class="login-field span-2">
+                <label class="login-label" for="registerCountry">Country</label>
+                <input class="login-input" id="registerCountry" type="text">
+              </div>
+            </div>
+          </div>
+
+          <p class="login-message" id="registerMessage"></p>
+          <p class="auth-switch">Already have an account? <button type="button" class="link-btn" id="showLoginBtn">Log in</button></p>
+        </form>
+
+        <div class="verify-view view-hidden" id="verifyView">
+          <div class="verify-text-col">
+            <p class="verify-label">Your verification code</p>
+            <div class="verify-code-row">
+              <div class="verify-code" id="verifyCode">------</div>
+              <button type="button" class="copy-code-btn" id="copyCodeBtn" aria-label="Copy code">
+                <span class="copy-code-label" gs_tracker="Code copied">Copy</span>
+              </button>
+            </div>
+            <ol class="verify-steps">
+              <li><span class="verify-step-num">1</span> Copy the 6-digit code above.</li>
+              <li><span class="verify-step-num">2</span> Paste it in the <a class="verify-link" href="https://cryzen.io/center/clans/clan/R1ME" target="_blank" rel="noopener noreferrer" gs_tracker="Clan chat visited from code section">clan chat</a>.</li>
+            </ol>
+            <p class="verify-expiry" id="verifyExpiry">Your registration request expires in 3 days.</p>
+          </div>
+          <div class="verify-image-col">
+            <img class="verify-image" src="media/code_example.jpg" alt="Example of posting the verification code in the R1ME clan chat">
+          </div>
+        </div>
       </div>
       <div class="panel-footer">
         <button class="pbtn close" type="button" id="loginClose">Close</button>
-        <button class="pbtn login-submit" type="submit" form="loginForm">Log In</button>
+        <button class="pbtn login-submit" type="submit" form="loginForm" id="loginPrimaryBtn">Log In</button>
       </div>
     </div>
   </div>
@@ -675,11 +1123,34 @@ function fallbackAvatar() {
   const logoutBtn = document.getElementById('logoutBtn');
 
   const loginBackdrop = document.getElementById('loginBackdrop');
+  const loginFrame = document.getElementById('loginFrame');
   const loginForm = document.getElementById('loginForm');
   const loginUsername = document.getElementById('loginUsername');
   const loginPassword = document.getElementById('loginPassword');
   const loginPasswordToggle = document.getElementById('loginPasswordToggle');
   const loginMessage = document.getElementById('loginMessage');
+  const loginPanelTitle = document.getElementById('loginPanelTitle');
+  const loginPrimaryBtn = document.getElementById('loginPrimaryBtn');
+
+  const showRegisterBtn = document.getElementById('showRegisterBtn');
+  const showLoginBtn = document.getElementById('showLoginBtn');
+  const registerForm = document.getElementById('registerForm');
+  const registerUsername = document.getElementById('registerUsername');
+  const registerPassword = document.getElementById('registerPassword');
+  const registerPasswordToggle = document.getElementById('registerPasswordToggle');
+  const registerPasswordConfirm = document.getElementById('registerPasswordConfirm');
+  const registerPasswordConfirmToggle = document.getElementById('registerPasswordConfirmToggle');
+  const registerCryzenName = document.getElementById('registerCryzenName');
+  const registerDiscord = document.getElementById('registerDiscord');
+  const registerWeapon = document.getElementById('registerWeapon');
+  const registerCountry = document.getElementById('registerCountry');
+  const registerMessage = document.getElementById('registerMessage');
+
+  const verifyView = document.getElementById('verifyView');
+  const verifyCode = document.getElementById('verifyCode');
+  const verifyExpiry = document.getElementById('verifyExpiry');
+  const copyCodeBtn = document.getElementById('copyCodeBtn');
+  const copyCodeLabel = copyCodeBtn.querySelector('.copy-code-label');
 
   // ================= session =================
 
@@ -754,7 +1225,9 @@ function fallbackAvatar() {
 
   function openLoginModal(){
     loginMessage.textContent = '';
+    registerMessage.textContent = '';
     resetPasswordVisibility();
+    showAuthView('login');
     clearTimeout(loginCloseTimer);
     loginBackdrop.classList.remove('closing');
 
@@ -778,19 +1251,32 @@ function fallbackAvatar() {
   loginBackdrop.addEventListener('click', e => { if(e.target === loginBackdrop) closeLoginModal(); });
 
   /*
-   * Password show/hide toggle.
+   * Password show/hide toggle. Reused for the login field and both
+   * registration password fields.
    */
-  function resetPasswordVisibility(){
-    loginPassword.type = 'password';
-    loginPasswordToggle.classList.remove('is-visible');
-    loginPasswordToggle.setAttribute('aria-label', 'Show password');
+  function setupPasswordToggle(input, toggleBtn){
+    toggleBtn.addEventListener('click', () => {
+      const showing = toggleBtn.classList.toggle('is-visible');
+      input.type = showing ? 'text' : 'password';
+      toggleBtn.setAttribute('aria-label', showing ? 'Hide password' : 'Show password');
+    });
   }
 
-  loginPasswordToggle.addEventListener('click', () => {
-    const showing = loginPasswordToggle.classList.toggle('is-visible');
-    loginPassword.type = showing ? 'text' : 'password';
-    loginPasswordToggle.setAttribute('aria-label', showing ? 'Hide password' : 'Show password');
-  });
+  function resetOnePasswordVisibility(input, toggleBtn){
+    input.type = 'password';
+    toggleBtn.classList.remove('is-visible');
+    toggleBtn.setAttribute('aria-label', 'Show password');
+  }
+
+  function resetPasswordVisibility(){
+    resetOnePasswordVisibility(loginPassword, loginPasswordToggle);
+    resetOnePasswordVisibility(registerPassword, registerPasswordToggle);
+    resetOnePasswordVisibility(registerPasswordConfirm, registerPasswordConfirmToggle);
+  }
+
+  setupPasswordToggle(loginPassword, loginPasswordToggle);
+  setupPasswordToggle(registerPassword, registerPasswordToggle);
+  setupPasswordToggle(registerPasswordConfirm, registerPasswordConfirmToggle);
 
   /*
    * Login.
@@ -798,7 +1284,7 @@ function fallbackAvatar() {
   loginForm.addEventListener('submit', async event => {
     event.preventDefault();
 
-    loginMessage.textContent = 'Logging in\u2026';
+    setAuthMessage(loginMessage, 'Logging in\u2026', false);
 
     const username = loginUsername.value.trim();
     const password = loginPassword.value;
@@ -814,7 +1300,7 @@ function fallbackAvatar() {
       const data = await response.json();
 
       if(!response.ok){
-        loginMessage.textContent = data.error || 'Login failed.';
+        setAuthMessage(loginMessage, data.error || 'Login failed.', true);
         return;
       }
 
@@ -828,7 +1314,186 @@ function fallbackAvatar() {
 
     }catch(error){
       console.error(error);
-      loginMessage.textContent = 'Could not connect to the server.';
+      setAuthMessage(loginMessage, 'Could not connect to the server.', true);
+    }
+  });
+
+  /*
+   * Formats the backend-provided expires_at timestamp for display.
+   * The frontend never calculates this value itself - it only renders
+   * whatever ISO timestamp the API sends back.
+   */
+  /*
+   * Sets text on a login/register message element, styling it as an
+   * error (red) or as neutral info/loading status (ice blue).
+   */
+  function setAuthMessage(el, text, isError){
+    el.textContent = text;
+    el.classList.toggle('info', !isError && !!text);
+  }
+
+  function formatExpiry(isoString){
+    const date = new Date(isoString);
+    if(isNaN(date.getTime())) return isoString;
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(date);
+  }
+
+  /*
+   * ================= registration =================
+   * Switches the modal between three views:
+   *   'login'    - the existing sign-in form
+   *   'register' - step 1, account details
+   *   'verify'   - step 2, shows the verification code returned by the API
+   */
+  function showAuthView(view){
+    loginForm.classList.toggle('view-hidden', view !== 'login');
+    registerForm.classList.toggle('view-hidden', view !== 'register');
+    verifyView.classList.toggle('view-hidden', view !== 'verify');
+
+    // login keeps the compact frame; register/verify open as a wide, full-page-style panel
+    loginFrame.classList.toggle('wide', view === 'register' || view === 'verify');
+    loginFrame.classList.toggle('mode-register', view === 'register');
+    loginFrame.classList.toggle('mode-verify', view === 'verify');
+
+    if(view === 'login'){
+      loginPanelTitle.textContent = 'Member Login';
+      loginPrimaryBtn.hidden = false;
+      loginPrimaryBtn.textContent = 'Log In';
+      loginPrimaryBtn.setAttribute('form', 'loginForm');
+    }else if(view === 'register'){
+      loginPanelTitle.textContent = 'Create Account';
+      registerMessage.textContent = '';
+      loginPrimaryBtn.hidden = false;
+      loginPrimaryBtn.textContent = 'Create Account';
+      loginPrimaryBtn.setAttribute('form', 'registerForm');
+    }else if(view === 'verify'){
+      loginPanelTitle.textContent = 'Verify Your Registration';
+      loginPrimaryBtn.hidden = true;
+    }
+  }
+
+  showRegisterBtn.addEventListener('click', () => {
+    loginForm.reset();
+    resetPasswordVisibility();
+    loginMessage.textContent = '';
+    showAuthView('register');
+  });
+
+  showLoginBtn.addEventListener('click', () => {
+    registerMessage.textContent = '';
+    showAuthView('login');
+  });
+
+  /*
+   * Registration - step 1 submit.
+   * On success the API returns a verification code; the user is NOT logged
+   * in automatically. They must post the code in the clan's Cryzen chat.
+   */
+  registerForm.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    setAuthMessage(registerMessage, 'Creating account\u2026', false);
+
+    const payload = {
+      username: registerUsername.value.trim(),
+      password: registerPassword.value,
+      password_confirm: registerPasswordConfirm.value,
+      cryzen_profile_name: registerCryzenName.value.trim(),
+      discord_username: registerDiscord.value.trim(),
+      main_weapon: registerWeapon.value.trim(),
+      country: registerCountry.value.trim()
+    };
+
+    try{
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+
+      let data;
+      try{
+        data = await response.json();
+      }catch(parseError){
+        data = null;
+      }
+
+      if(!response.ok || !data || !data.success){
+        setAuthMessage(registerMessage, (data && data.error) || 'Registration failed. Please try again.', true);
+        return;
+      }
+
+      // success - show the verification code, do not log the user in
+      verifyCode.textContent = data.verification_code;
+      registerMessage.textContent = '';
+
+      // the backend now owns expiry (created_at + 3 days); we only display
+      // whatever it sends back, we never compute expires_at ourselves
+      verifyExpiry.textContent = data.expires_at
+        ? 'Your registration request expires on ' + formatExpiry(data.expires_at) + '.'
+        : 'Your registration request expires in 3 days.';
+
+      showAuthView('verify');
+
+    }catch(error){
+      console.error(error);
+      setAuthMessage(registerMessage, 'Could not connect to the server.', true);
+    }
+  });
+
+  /*
+   * Copy the verification code to the clipboard, with brief visual feedback.
+   * Feedback always shows on click, even if the async Clipboard API is
+   * blocked (e.g. no permission, insecure context) - it falls back to the
+   * classic textarea + execCommand trick so this keeps working everywhere.
+   */
+  let copyResetTimer;
+
+  function legacyCopy(text){
+    const tempInput = document.createElement('textarea');
+    tempInput.value = text;
+    tempInput.setAttribute('readonly', '');
+    tempInput.style.position = 'fixed';
+    tempInput.style.top = '0';
+    tempInput.style.left = '0';
+    tempInput.style.opacity = '0';
+    tempInput.style.pointerEvents = 'none';
+    document.body.appendChild(tempInput);
+    tempInput.focus();
+    tempInput.select();
+    tempInput.setSelectionRange(0, text.length);
+    let ok = false;
+    try{ ok = document.execCommand('copy'); }catch(error){ ok = false; }
+    document.body.removeChild(tempInput);
+    return ok;
+  }
+
+  function showCopiedFeedback(){
+    copyCodeBtn.classList.add('copied');
+    copyCodeBtn.setAttribute('aria-label', 'Copied');
+    copyCodeLabel.textContent = 'Copied';
+    clearTimeout(copyResetTimer);
+    copyResetTimer = setTimeout(() => {
+      copyCodeBtn.classList.remove('copied');
+      copyCodeBtn.setAttribute('aria-label', 'Copy code');
+      copyCodeLabel.textContent = 'Copy';
+    }, 1600);
+  }
+
+  copyCodeBtn.addEventListener('click', () => {
+    const code = verifyCode.textContent.trim();
+
+    if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){
+      navigator.clipboard.writeText(code)
+        .catch(() => legacyCopy(code))
+        .finally(showCopiedFeedback);
+    }else{
+      legacyCopy(code);
+      showCopiedFeedback();
     }
   });
 
@@ -914,10 +1579,29 @@ function fallbackAvatar() {
   document.getElementById('rulesClose').addEventListener('click', closeRules);
   rulesBackdrop.addEventListener('click', e => { if(e.target === rulesBackdrop) closeRules(); });
 
+  // ================= map overlay =================
+  // The map fragment itself is loaded once by loadApp() below and stays
+  // mounted in the DOM the whole time; opening/closing just toggles this
+  // class, so nothing gets re-fetched.
+  const mapOverlay = document.getElementById('mapOverlay');
+
+  function openMap(){
+    mapOverlay.classList.add('open');
+    document.body.classList.add('no-scroll');
+  }
+  function closeMap(){
+    mapOverlay.classList.remove('open');
+    document.body.classList.remove('no-scroll');
+  }
+
+  document.getElementById('navMap').addEventListener('click', openMap);
+  document.getElementById('mapOverlayClose').addEventListener('click', closeMap);
+
   document.addEventListener('keydown', e => {
     if(e.key === 'Escape'){
       closeProfile();
       closeRules();
+      closeMap();
       closeAccountMenu();
       closeVisDropdown();
       closeLoginModal();
@@ -973,6 +1657,9 @@ function fallbackAvatar() {
     await loadFragment('members.html', 'members-mount');
     await loadFragment('invites.html', 'invites-mount');
     await loadFragment('events.html', 'events-mount');
+    // loaded once here, then just shown/hidden via #mapOverlay's .open class
+    // (see openMap/closeMap) — this is what stops it re-fetching every time
+    await loadFragment('map.html', 'map-mount');
 
     /*
      * Run when the page opens.

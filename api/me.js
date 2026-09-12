@@ -12,14 +12,12 @@ const supabase = createClient(
     }
 );
 
-
 function hashSessionToken(token) {
     return crypto
         .createHash("sha256")
         .update(token)
         .digest("hex");
 }
-
 
 function getSessionToken(req) {
     const cookieHeader = req.headers.cookie || "";
@@ -46,17 +44,16 @@ function getSessionToken(req) {
     return null;
 }
 
-
 module.exports = async (req, res) => {
 
     if (req.method !== "GET") {
+
         res.setHeader("Allow", "GET");
 
         return res.status(405).json({
             error: "Method not allowed."
         });
     }
-
 
     try {
 
@@ -68,28 +65,28 @@ module.exports = async (req, res) => {
             });
         }
 
-
         const tokenHash = hashSessionToken(sessionToken);
 
-
-        const { data: session, error: sessionError } =
-            await supabase
-                .from("sessions")
-                .select(`
-                    member_id,
-                    expires_at,
-                    members (
-                        id,
-                        display_name,
-                        rank,
-                        avatar
-                    )
-                `)
-                .eq("token_hash", tokenHash)
-                .maybeSingle();
-
+        const {
+            data: session,
+            error: sessionError
+        } = await supabase
+            .from("sessions")
+            .select(`
+                member_id,
+                expires_at,
+                members (
+                    id,
+                    display_name,
+                    rank,
+                    avatar
+                )
+            `)
+            .eq("token_hash", tokenHash)
+            .maybeSingle();
 
         if (sessionError) {
+
             console.error(
                 "Session lookup error:",
                 sessionError
@@ -100,17 +97,16 @@ module.exports = async (req, res) => {
             });
         }
 
-
         if (!session) {
             return res.status(401).json({
                 authenticated: false
             });
         }
 
-
         /*
          * Check whether the session has expired.
          */
+
         if (new Date(session.expires_at) <= new Date()) {
 
             await supabase
@@ -123,6 +119,16 @@ module.exports = async (req, res) => {
             });
         }
 
+        /*
+         * Check whether the member is still an active clan member.
+         */
+
+        if (!session.members || session.members.is_active !== true) {
+
+            return res.status(401).json({
+                authenticated: false
+            });
+        }
 
         return res.status(200).json({
             authenticated: true,

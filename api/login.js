@@ -64,6 +64,7 @@ module.exports = async (req, res) => {
             .from("members")
             .select("id, username, password_hash, display_name, rank")
             .eq("username", cleanUsername)
+	    .eq("is_active", true)
             .maybeSingle();
 
         if (memberError) {

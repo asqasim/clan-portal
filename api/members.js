@@ -38,8 +38,10 @@ module.exports = async (req, res) => {
                     discord_username,
                     cryzen_lvl,
                     member_since,
-		    country
+                    country,
+                    is_active
                 `)
+                .eq("is_active", true)
                 .order("id", {
                     ascending: true
                 });
